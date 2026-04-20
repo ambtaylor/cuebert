@@ -16,4 +16,18 @@
 #   - screenshot-baseline-toolkit (M6-P3) qa group
 #   - engine-log-toolkit   (M6)     qa group
 
-skills: []
+skills:
+  - name: memory-toolkit
+    description: "Milestone and troubleshooting memory for cuebert (SQLite FTS5 + optional vector). Text-only by default (CUEBERT_MEMORY_MODE=text); hybrid mode opt-in."
+    keywords: [memory, milestone, troubleshoot, lookup, commit, search, remember, history, decisions]
+    operations:
+      - name: milestone_lookup
+        description: Look up milestone context by project/milestone identifiers.
+      - name: milestone_commit
+        description: Commit milestone results (deferred items, decisions, errors, files touched).
+      - name: troubleshoot_search
+        description: Search past troubleshooting sessions by query (FTS5/BM25 + optional vector).
+      - name: troubleshoot_commit
+        description: Commit a troubleshooting session (symptoms, root cause, resolution, tags).
+    skill_path: .cursor/skills/memory-toolkit/SKILL.md
+    status: active
