@@ -13,7 +13,7 @@
 #   - unreal-build         (M6-P1)  engine group
 #   - git-lfs-toolkit      (M5-P2)  engine group
 #   - gauntlet-toolkit     (M6-P2)  qa group
-#   - vision-qa-toolkit    (M6-P3)  qa group
+#   - vision-qa            (M6-P3)  qa group
 #   - screenshot-baseline-toolkit (M6-P3) qa group
 #   - engine-log-toolkit   (M6)     qa group
 
@@ -84,8 +84,25 @@ skills:
       - unreal_build_target
       - unreal_run_commandlet
       - unreal_tail_log
-      - unreal_run_gauntlet
     mcp_group: engine
+    status: alpha
+
+  - name: vision-qa
+    description: Visual QA for gameplay screenshots and Gauntlet artifacts. Perceptual hashing, histogram diffs, and rule-based checks. Stdlib-first; upgrade path to LLM-vision without envelope changes.
+    skill_path: .cursor/skills/vision-qa/SKILL.md
+    keywords:
+      - vision
+      - qa
+      - screenshot
+      - visual regression
+      - gauntlet
+      - phash
+    operations:
+      - vision_qa_status
+      - vision_qa_compare_images
+      - vision_qa_check_image
+      - vision_qa_compare_screenshots
+    mcp_group: qa
     status: alpha
 
   - name: memory-toolkit

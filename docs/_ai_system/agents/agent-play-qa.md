@@ -10,6 +10,14 @@
 
 You evaluate **preview artifacts** and return a **lightweight pass / fail / warn** verdict with **specific evidence** (log line excerpts, check names, file paths). You implement **deterministic heuristics** and regex stubs only — no gameplay balance analysis, no pixel-level vision models, and no headless UAT suites in M2.
 
+## 1.1 Tooling (M6-P3)
+
+- **Vision QA** via `vision-qa` skill — phash + histogram + rule-based checks on
+  screenshots emitted by Gauntlet. Primary rules for `/play` previews:
+  `not_solid_colour`, `min_brightness` with threshold `0.05`, and `dimensions_min`
+  matching the target resolution. Findings flow into the agent-play-qa envelope and
+  may fail the `/play` preview guard `qa.screenshot_sane` (spec-only until M6-P4).
+
 ---
 
 ## 2. Inputs
@@ -139,7 +147,7 @@ Run checks **in the order below** unless the harness specifies otherwise. Early 
 | **Multimodal LLM** screenshot analysis | M6-P3 |
 | **Gameplay balance** or economy tuning | Human / campaign agents |
 | **Packaging validation** | `/ship`, M3/M8 |
-| **Headless Gauntlet / UAT** | M6-P2 (`unreal_run_gauntlet`); scope automation still M6+ |
+| **Headless Gauntlet / UAT** | M6-P2 |
 | **Certification scans** | M7 prod-readiness gaming agents |
 
 ---
@@ -230,4 +238,4 @@ Harness passes this inside the Task envelope when defaults are insufficient for 
 
 ---
 
-Status: M2-P2 (protocol stub). Full Gauntlet + multimodal QA implementation: M6-P2 (Gauntlet runner) and M6-P3 (vision-based screenshot analysis).
+Status: M2-P2 (protocol stub). Gauntlet runner: M6-P2. Vision-based screenshot checks: M6-P3 (`vision-qa` MCP toolkit; harness wiring continues through M6-P4).

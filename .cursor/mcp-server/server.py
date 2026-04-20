@@ -45,7 +45,7 @@ class GroupSpec(TypedDict):
 #   core:   memory-toolkit (M1-P6)
 #   asset:  comfyui-toolkit, asset-manifest-toolkit (M4)
 #   engine: unreal-bridge, unreal-build, git-lfs-toolkit (M5-M6)
-#   qa:     gauntlet-toolkit, vision-qa-toolkit, screenshot-baseline-toolkit, engine-log-toolkit (M6)
+#   qa:     gauntlet-toolkit, vision-qa, screenshot-baseline-toolkit, engine-log-toolkit (M6)
 #
 # Each skill directory appears in at most one group. The lists are the
 # authoritative source; skills/ dirs that don't exist yet are silently
@@ -67,8 +67,7 @@ GROUPS: dict[str, GroupSpec] = {
     # unreal_describe_preset, unreal_ping_actor.
     # Unreal bridge (M5-P4): unreal_set_property, unreal_call_function.
     # Unreal build  (M6-P1): unreal_build_status, unreal_build_target,
-    # unreal_run_commandlet, unreal_tail_log
-    # Unreal build  (M6-P2): unreal_run_gauntlet
+    # unreal_run_commandlet, unreal_tail_log.
     # All loaded via dynamic discovery from .cursor/skills/unreal-*/tools/*.py
     "engine": {
         "include_core": False,
@@ -78,7 +77,10 @@ GROUPS: dict[str, GroupSpec] = {
         "include_core": False,
         "skills": [
             "gauntlet-toolkit",
-            "vision-qa-toolkit",
+            # Vision QA (M6-P3): vision_qa_status, vision_qa_compare_images,
+            # vision_qa_check_image, vision_qa_compare_screenshots
+            # All loaded via dynamic discovery from .cursor/skills/vision-qa/tools/*.py
+            "vision-qa",
             "screenshot-baseline-toolkit",
             "engine-log-toolkit",
         ],
