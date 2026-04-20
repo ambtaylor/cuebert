@@ -8,7 +8,7 @@ Cuebert ports Cue's plan-as-source-of-truth orchestration, MCP tool surface, vau
 
 ## Status
 
-All **8 milestones** from the authoritative plan are complete. Supervisor routing (`/play`, `/ship`, `/asset`, `--preview`) is live as of M9. Guard evaluators and engine-specific automation depth remain milestone-gated per each harness doc.
+The original **M1–M8** engineering plan is complete. **M9** activated supervisor routing for `/play`, `/ship`, and `/asset` plus `--preview` chain walkers. **M10** delivered the full end-to-end build: **10** subagent slims (`.cursor/agents/`), rule-engine and guard-evaluator skills (`qa-resilience-game`, `prod-readiness-game`, `cook-package-game`, `cert-game`, `play-guards`, `ship-guards`, `asset-guards`), vault placeholder configs, `.cursor/mcp.json` split servers, and CI validation — **73** Python files under `.cursor/` with clean syntax/parse. **M11** adds the `hello-level` example project, workspace manifest sample entry, and documentation/CI polish so harnesses resolve a real schema from Cursor out of the box.
 
 ---
 
@@ -41,6 +41,71 @@ All **8 milestones** from the authoritative plan are complete. Supervisor routin
 │                          qa_resilience_scan                           │
 └──────────────────────────────────────────────────────────────────────┘
 ```
+
+## Quick Start
+
+1. **Add cuebert to your Cursor workspace** (multi-root).
+
+2. **Configure MCP servers** — `.cursor/mcp.json` is already configured. Verify
+   the four servers (`cuebert-core`, `cuebert-engine`, `cuebert-asset`,
+   `cuebert-qa`) appear in Settings > MCP.
+
+3. **Preview a harness** to health-check the system:
+   ```
+   /play --preview
+   /ship --preview
+   /asset --preview
+   ```
+
+4. **Onboard a game project** (or use the included `hello-level` example):
+   ```
+   /onboard hello-level
+   ```
+
+5. **Run a play loop** on the example project:
+   ```
+   /play --project hello-level
+   ```
+
+All tools default to **dry-run mode**. Set environment variables or configure
+vault credentials (see `.cuebert/vault/shared/`) to enable live execution.
+
+## Vault Credentials
+
+Placeholder configs live under `.cuebert/vault/shared/`:
+
+| Service | Placeholder | Purpose |
+|---------|-------------|---------|
+| ComfyUI | `comfyui/credentials.yaml.example` | 2D asset generation server |
+| Unreal | `unreal/credentials.yaml.example` | Engine path + Remote Control API |
+| Stores | `stores/credentials.yaml.example` | Steam, Epic, GOG, itch.io upload |
+| Memory | `memory/credentials.yaml.example` | Embedding model for hybrid search |
+
+Copy any `.example` file to `credentials.yaml` and fill in real values.
+**Never commit `credentials.yaml` to git** (blocked by `.gitignore`).
+
+## MCP Tools
+
+Cuebert exposes **four MCP server processes** (see `.cursor/mcp.json`). **cuebert-core** loads shared utilities plus **memory-toolkit**; domain servers load the remaining registered skills.
+
+**Core** (`cuebert-core`): 7 tools — `cuebert_system_check`, `build_verify`, `health_check`, `npm_auth_check`, and three `vault_*` helpers from `vault_resolve`.
+
+**Registered toolkit skills (12)** — tool counts match `register()` / `@mcp.tool` surfaces in each skill’s `tools/` tree (see `.cuebert/registry/skills.yaml`):
+
+| Skill | Tools | MCP group |
+|-------|------:|-----------|
+| memory-toolkit | 6 | core |
+| comfyui-toolkit | 5 | asset |
+| unreal-bridge | 6 | engine |
+| unreal-build | 5 | engine |
+| cook-package-game | 2 | engine |
+| cert-game | 2 | qa |
+| vision-qa | 4 | qa |
+| qa-resilience-game | 2 | qa |
+| prod-readiness-game | 2 | qa |
+| play-guards | 1 | qa |
+| ship-guards | 1 | qa |
+| asset-guards | 1 | asset |
 
 ---
 
@@ -231,24 +296,15 @@ Generate 2D raster assets via ComfyUI from a declarative YAML manifest, verify a
 
 ---
 
-## Quick Start
+## Clone and vault setup
 
 ```bash
 git clone https://github.com/ambtaylor/cuebert.git
 cd cuebert
-
-# 1. Initialize vault (tiered YAML credential resolution)
 python scripts/init-vault.py
-
-# 2. Start MCP server (FastMCP with gaming GROUPS)
-#    Configure in .cursor/mcp.json or your IDE's MCP settings
-
-# 3. Verify hub health
-#    Call cuebert_system_check(scope="all") via MCP → expect PASS
-
-# 4. Onboard a game project
-#    /onboard creates workspace-manifest.json entry + project profile
 ```
+
+Then add the folder to Cursor, confirm MCP servers in Settings, and use the **Quick Start** steps above for `/play`, `/ship`, and `/asset`.
 
 ---
 
@@ -282,6 +338,8 @@ cuebert/
 │   │   └── qa-resilience-game.yaml    # QA resilience rules
 │   ├── memory/
 │   │   └── memory.db                  # SQLite FTS5 (created at runtime)
+│   ├── vault/
+│   │   └── shared/                    # *.credentials.yaml.example placeholders
 │   ├── traces/
 │   │   ├── play/<timestamp>/          # /play session artifacts
 │   │   ├── ship/<timestamp>/          # /ship envelopes + cook logs
@@ -325,10 +383,15 @@ cuebert/
 │
 ├── lib/cue_vault/                     # Vault resolver package
 ├── registry/services.yaml             # Service registry (repo root)
+├── examples/
+│   └── HelloLevel/                    # hello-level sample (uproject + asset manifest)
 ├── scripts/
 │   ├── init-vault.py
 │   ├── hydrate-vault.py
 │   └── vault_installer/
+├── .github/
+│   └── workflows/
+│       └── ci.yaml                    # YAML/JSON/py_compile validation
 └── .cursorrules                       # IDE rules
 ```
 
@@ -340,11 +403,11 @@ cuebert/
 |--------|------|-----------|--------|
 | **Unreal Engine 5** | **1** | PIE, Remote Control, UAT BuildCookRun, Gauntlet, vision QA | Full tooling (M1–M8) |
 | **Unity** | **2** | Stubs + documented contracts | Post-M8 for first-class |
-| **Godot** | **3** | Detection + stubs only | Post-M8 |
+| **Godot** | **3** | Detection + stubs only | Post-M8 (stubs; first-class later) |
 
 ---
 
-## Roadmap (8 Milestones)
+## Roadmap (milestones)
 
 | # | Milestone | Phases | What shipped | Status |
 |---|-----------|--------|--------------|--------|
@@ -356,8 +419,9 @@ cuebert/
 | M6 | Build + Gauntlet + vision QA | P1–P4 | `unreal-build-toolkit`, `gauntlet-toolkit`, `vision-qa-toolkit`, gaming `build_verify` hooks | **complete** |
 | M7 | QA resilience + gaming PR | P1–P3 | `qa-resilience-game`, `prod-readiness-game` (14 rules), strict `/ship` gates | **complete** |
 | M8 | Cook + cert | P1–P3 | `cook-package-game` (UAT catalog), `cert-game` (12-checklist advisory), `/ship` guard wiring | **complete** |
-
-**Post-plan:** M9 activated `/play`, `/ship`, `/asset` supervisor routing + `--preview` walkers. M10 added 10 subagent slim dispatchers.
+| M9 | Harness activation | — | Live `/play`, `/ship`, `/asset` supervisor routing; `--preview` walkers for all three | **complete** |
+| M10 | Full e2e build | P1–P6 | Subagent slims, guard/rule skills, vault placeholders, MCP split, 73 Python files, integration verification | **complete** |
+| M11 | Cursor handoff | — | `hello-level` example, manifest sample project, CI workflow, README + plan closure | **complete** |
 
 ---
 

@@ -7,14 +7,24 @@
     "updated": "2026-04-20",
     "description": "Cuebert — gaming-focused fork of Cue (Unreal Engine 5 first)"
   },
-  "projects": {},
+  "projects": {
+    "hello-level": {
+      "path": "examples/HelloLevel",
+      "engine": "unreal",
+      "engine_version": "5.4",
+      "language": "UE-CPP",
+      "description": "Minimal Unreal project for testing cuebert harnesses",
+      "assetManifestPath": "examples/HelloLevel/.cuebert-assets.yaml",
+      "onboarded": "2026-04-20"
+    }
+  },
   "vaultResolution": {
     "order": [
       "project .cuebert/vault/",
       "hub .cuebert/vault/{project}/",
       "hub .cuebert/vault/shared/"
     ],
-    "description": "Credentials are resolved in this priority order. Deep-merged per FileVaultResolver semantics (see docs/_ai_system/standards/vault.md when ported in M1-P3)."
+    "description": "Credentials are resolved in this priority order. Deep-merged per FileVaultResolver semantics."
   },
   "memory": {
     "mode": "text",

@@ -1,0 +1,15 @@
+schema_version: "1.0"
+project: hello-level
+assets:
+  - id: hero-texture
+    prompt: "A stylized 512x512 hero character portrait, flat game art style"
+    workflow: "txt2img-sdxl"
+    destination: "Content/Textures/T_Hero_D.png"
+    dimensions: [512, 512]
+    seed: 42
+  - id: background-tile
+    prompt: "A tileable 256x256 grass texture, top-down perspective"
+    workflow: "txt2img-sdxl"
+    destination: "Content/Textures/T_Grass_Tile_D.png"
+    dimensions: [256, 256]
+    seed: 7

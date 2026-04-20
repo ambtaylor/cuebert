@@ -1,0 +1,13 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.4",
+  "Category": "",
+  "Description": "Cuebert hello-level test project",
+  "Modules": [
+    {
+      "Name": "HelloLevel",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}
