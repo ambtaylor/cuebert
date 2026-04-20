@@ -1,0 +1,22 @@
+{
+  "packages": [
+    {
+      "platform": "Win64",
+      "format": "zip",
+      "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/package/hello-level_0.1.0_Win64_shipping.zip",
+      "size_bytes": 2800000000,
+      "sha256": "a1b2c3d4e5f6789012345678901234567890abcd1234567890abcdef12345678",
+      "deterministic": true
+    },
+    {
+      "platform": "Mac",
+      "format": "zip",
+      "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/package/hello-level_0.1.0_Mac_shipping.zip",
+      "size_bytes": 2650000000,
+      "sha256": "b2c3d4e5f6789012345678901234567890abcde234567890abcdef1234567890a1",
+      "deterministic": true
+    }
+  ],
+  "manifest_path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/package/manifest.json",
+  "verdict": "pass"
+}

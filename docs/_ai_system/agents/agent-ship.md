@@ -179,6 +179,8 @@ The authoritative **Production Readiness Register** populated during `/o` runs m
 
 ## 4. Ship Guards
 
+**Authoritative spec:** `docs/_ai_system/standards/ship-guards.md`. **Defaults:** `.cuebert/config/ship-guards.yaml`.
+
 **Authoritative pattern:** Mirror **`docs/_ai_system/standards/play-preview-guards.md`** — stable **`id`** keys, **`class`** by pipeline position, **`severity`**, evidence contract, YAML config with **`version: 1`**, and **`global.spec_only_as_info`**-style behavior until evaluators exist.
 
 **Config file (hub):** **`.cuebert/config/ship-guards.yaml`** — **written and wired in M3-P3**; **M3-P1** defines the **contract** only. **Project overrides** MAY ship in **`.cuebert/workspace-manifest.json`** under a future `shipGuards.overrides` map (same resolution idea as `playGuards.overrides` in `play-preview-guards.md` §4.3) — **schema prose updated in M3-P3**.
@@ -387,6 +389,8 @@ The `/ship` harness will dispatch **`Task(subagent_type: "generalPurpose")`** ro
 | **`agent-ship-cert`** | **Stub M3-P2**; **full M8-P2** | Run cert profile checks; write `cert/report.md` findings structure. |
 | **`agent-ship-package`** | **Stub M3-P2**; **full M8** | Produce packaged artifact + checksum + manifest. |
 | **`agent-ship-upload`** | **Stub M3-P2**; **full post-M8** | Optional channel upload; stream partial failure handling. |
+
+A reusable **ship plan** template is at **`docs/projects/_templates/ship-plan-template.md`**. Worked dry-run example: **`docs/_ai_system/examples/ship-sample-run-hello-level.md`**.
 
 **Explicit statement:** These subagents **do not exist** as implemented slims in **M3-P1**. They are **logical roles** for future prompts.
 

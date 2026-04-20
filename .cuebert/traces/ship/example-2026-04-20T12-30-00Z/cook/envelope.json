@@ -1,0 +1,16 @@
+{
+  "status": "ok",
+  "exit_code": 0,
+  "duration_ms": 900000,
+  "platforms_cooked": ["Win64", "Mac"],
+  "cooked_paths": {
+    "Win64": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cooked/Win64/",
+    "Mac": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cooked/Mac/"
+  },
+  "content_size_bytes": {
+    "Win64": 3221225472,
+    "Mac": 3000000000
+  },
+  "log_tail_path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cook/engine.log",
+  "notes": "Hypothetical UAT cook success for hello-level 0.1.0 build 42; both platforms within 5GB warn budget."
+}

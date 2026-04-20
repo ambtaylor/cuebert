@@ -35,7 +35,9 @@ Gaming play harness (**coming in M2**). Protocol doc: `docs/_ai_system/agents/ag
 
 ### `/ship`
 
-Gaming deploy (**coming in M3**). Full definition ships with M3 (prod-readiness + cook/cert). Until then, respond in **main chat** only: *"Ship harness not yet available (M3)."* Do **not** spawn a Task for `/ship`. When M3 lands, `/ship` follows the same **main-chat protocol** pattern as `/d` — not a named `subagent_type`.
+Gaming ship harness (**coming in M3**). Protocol doc: `docs/_ai_system/agents/agent-ship.md`; subagent stubs: `agent-ship-cook.md`, `agent-ship-cert.md`, `agent-ship-package.md`, `agent-ship-upload.md`; guards spec: `docs/_ai_system/standards/ship-guards.md`; config: `.cuebert/config/ship-guards.yaml`; template: `docs/projects/_templates/ship-plan-template.md`; worked example: `docs/_ai_system/examples/ship-sample-run-hello-level.md`. Implementation stubs land in **M3-P1..M3-P3** (this phase closes M3); full cook/cert/package land in **M8**. Until M8 is complete, respond in **main chat** only: *"Ship harness not yet executable (M8)."* Do **not** spawn a Task for `/ship` yet.
+
+When M3 lands, `/ship` follows the same **main-chat protocol** pattern as `/d` — not a named `subagent_type`.
 
 **Hub operations:** `/onboard [project-name]` registers a project on the hub (`docs/projects/{name}/`). `/update` refreshes the hub checkout and/or **re-scans** a project profile when `[project-name]` is given (`agent-ops-update.md` — not yet ported; deferred). Add the `cuebert` hub to the Cursor multi-root workspace — Cuebert does not copy itself into application repositories. Projects are registered in `.cuebert/workspace-manifest.json` (see `docs/_ai_system/agents/agent-ops-onboard.md` for adding new projects).
 

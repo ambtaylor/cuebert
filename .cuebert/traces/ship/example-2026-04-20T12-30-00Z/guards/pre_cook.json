@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "phase": "pre_cook",
+  "verdict": "pass",
+  "evaluated_at": "2026-04-20T12:30:05Z",
+  "project_key": "hello-level",
+  "engine": "unreal",
+  "guard_config_version": 1,
+  "guards": {
+    "pre_cook": [
+      {
+        "guard_id": "guard.assets.referenced_in_cook",
+        "class": "pre-cook",
+        "severity": "info",
+        "message": "Evaluator spec-only until M8 asset graph; spec_only_as_info=true.",
+        "evidence": {
+          "type": "file",
+          "path": "Content/",
+          "detail": "heuristic scan not executed in M3-P3 doc-only example"
+        }
+      },
+      {
+        "guard_id": "guard.engine.version_match",
+        "class": "pre-cook",
+        "severity": "info",
+        "message": "Evaluator spec-only (M8-P1); manifest compares illustrative.",
+        "evidence": {
+          "type": "manifest",
+          "path": ".cuebert/workspace-manifest.json",
+          "detail": "engineVersion 5.3.2 expected"
+        }
+      },
+      {
+        "guard_id": "guard.git.clean",
+        "class": "pre-cook",
+        "severity": "info",
+        "message": "Evaluator spec-only (M8-P1 git snapshot); tree treated as clean for example.",
+        "evidence": {
+          "type": "text",
+          "path": ".git/HEAD",
+          "detail": "no diff emitted in doc-only fixture"
+        }
+      },
+      {
+        "guard_id": "guard.git.untracked_cook_paths",
+        "class": "pre-cook",
+        "severity": "info",
+        "message": "Evaluator spec-only (M8-P1); no untracked cook roots asserted here.",
+        "evidence": {
+          "type": "file",
+          "path": "Content/",
+          "detail": "cookable root scan skipped"
+        }
+      },
+      {
+        "guard_id": "guard.project.ship_metadata",
+        "class": "pre-cook",
+        "severity": "pass",
+        "message": "projects.hello-level.ship satisfies ship-guards.md section 8 required fields.",
+        "evidence": {
+          "type": "manifest",
+          "path": ".cuebert/workspace-manifest.json",
+          "detail": "ship.enginePath, ship.targetPlatforms, ship.defaultCookFlavor present"
+        }
+      }
+    ],
+    "post_cook": [],
+    "post_cert": [],
+    "post_package": []
+  }
+}

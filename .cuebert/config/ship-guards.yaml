@@ -1,0 +1,97 @@
+# .cuebert/config/ship-guards.yaml
+# Default Ship Guards config for cuebert's /ship harness.
+# See: docs/_ai_system/standards/ship-guards.md
+# Version 1 — M3-P3. Engine-specific cook/cert/package evaluators land in M8.
+
+version: 1
+
+guards:
+  # Working tree has no uncommitted changes in declared ship scope (pre-cook).
+  guard.git.clean:
+    enabled: true
+    default_severity: fail
+
+  # No untracked files under cookable directory roots (pre-cook).
+  guard.git.untracked_cook_paths:
+    enabled: true
+    default_severity: fail
+
+  # Declared engine kind + version match workspace manifest / project association (pre-cook).
+  guard.engine.version_match:
+    enabled: true
+    default_severity: fail
+
+  # projects.<key>.ship block present and schema-valid in workspace-manifest (pre-cook).
+  guard.project.ship_metadata:
+    enabled: true
+    default_severity: fail
+
+  # Heuristic scan for unreferenced / orphaned assets that commonly break cook (pre-cook).
+  guard.assets.referenced_in_cook:
+    enabled: true
+    default_severity: warn
+
+  # Cook subprocess exit code 0 (post-cook).
+  guard.cook.exit_code:
+    enabled: true
+    default_severity: fail
+
+  # Cooked output byte budget: warn first, fail when exceeding warn_bytes * fail_multiplier (post-cook).
+  guard.cook.size_budget:
+    enabled: true
+    default_severity: warn
+    threshold:
+      warn_bytes: 5368709120
+      fail_multiplier: 1.5
+
+  # Required cooked assets / manifest entries present after cook (post-cook).
+  guard.cook.missing_assets:
+    enabled: true
+    default_severity: fail
+
+  # Cert findings must not exceed configured severity floor (post-cert).
+  guard.cert.severity_floor:
+    enabled: true
+    default_severity: fail
+    threshold:
+      max_fail_findings: 0
+      max_warn_findings: 10
+
+  # All checklist ids required by cert_profile executed with PASS or allowed waived (post-cert).
+  guard.cert.required_checklists:
+    enabled: true
+    default_severity: fail
+
+  # cert/report.md exists and non-empty when cert_profile != none (post-cert).
+  guard.cert.report_emitted:
+    enabled: true
+    default_severity: fail
+
+  # Primary package artifact path exists on disk (post-package).
+  guard.package.exists:
+    enabled: true
+    default_severity: fail
+
+  # Recorded checksum matches recomputed hash for artifact bytes (post-package).
+  guard.package.checksum:
+    enabled: true
+    default_severity: fail
+
+  # Manifest of package contents generated per format rules (post-package).
+  guard.package.manifest:
+    enabled: true
+    default_severity: fail
+
+global:
+  # Hard wall-clock budget for cook subprocess family (seconds).
+  cook_max_duration_s: 1800
+  # Default per-platform cooked-output budget when guard.cook.size_budget omits warn_bytes (bytes).
+  cook_default_budget_bytes: 5368709120
+  # Cert subagent wall-clock budget (seconds).
+  cert_max_duration_s: 300
+  # Package subagent wall-clock budget (seconds).
+  package_max_duration_s: 600
+  # Upload safety: harness treats missing explicit dry_run:false as dry-run for network mutations.
+  upload_default_dry_run: true
+  # When true, spec-only evaluators surface as info and do not block before M8 wiring.
+  spec_only_as_info: true

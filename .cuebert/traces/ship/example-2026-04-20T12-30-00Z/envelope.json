@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "ship_run_id": "example-2026-04-20T12-30-00Z",
+  "project": "hello-level",
+  "engine": "unreal",
+  "engine_version": "5.3.2",
+  "version": {
+    "semver": "0.1.0",
+    "build_number": 42,
+    "internal_label": "publisher-qa-drop-1"
+  },
+  "git_sha": "deadbeefcafe0000",
+  "started_at": "2026-04-20T12:30:00Z",
+  "ended_at": "2026-04-20T12:55:00Z",
+  "duration_ms": 1500000,
+  "verdict": "pass",
+  "phase_verdicts": {
+    "pre_cook": "pass",
+    "cook": "pass",
+    "post_cook": "pass",
+    "cert": "warn",
+    "post_cert": "pass",
+    "package": "pass",
+    "post_package": "pass",
+    "upload": "skip"
+  },
+  "upload_status": "skipped",
+  "artifacts": {
+    "trace_root": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/",
+    "readme": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/README.md",
+    "guards_pre_cook": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/guards/pre_cook.json",
+    "guards_post_cook": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/guards/post_cook.json",
+    "guards_post_cert": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/guards/post_cert.json",
+    "guards_post_package": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/guards/post_package.json",
+    "cook_envelope": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cook/envelope.json",
+    "cook_engine_log": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cook/engine.log",
+    "cert_envelope": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cert/envelope.json",
+    "cert_report": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cert/report.md",
+    "package_envelope": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/package/envelope.json",
+    "upload_envelope": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/upload/envelope.json"
+  },
+  "findings": []
+}

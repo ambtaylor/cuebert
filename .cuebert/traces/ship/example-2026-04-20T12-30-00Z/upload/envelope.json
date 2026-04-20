@@ -1,0 +1,7 @@
+{
+  "dry_run": true,
+  "upload_channel": "none",
+  "verdict": "skip",
+  "uploads": [],
+  "notes": "Upload phase skipped: upload_channel=none per ship plan."
+}

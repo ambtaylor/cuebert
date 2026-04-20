@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "phase": "post_package",
+  "verdict": "pass",
+  "evaluated_at": "2026-04-20T12:54:30Z",
+  "project_key": "hello-level",
+  "engine": "unreal",
+  "guard_config_version": 1,
+  "guards": {
+    "pre_cook": [],
+    "post_cook": [],
+    "post_cert": [],
+    "post_package": [
+      {
+        "guard_id": "guard.package.checksum",
+        "class": "post-package",
+        "severity": "pass",
+        "message": "SHA-256 recomputation matches package envelope for both zips.",
+        "evidence": {
+          "type": "file",
+          "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/package/hello-level_0.1.0_Win64_shipping.zip",
+          "detail": "placeholder path; bytes not committed in M3-P3 fixture"
+        }
+      },
+      {
+        "guard_id": "guard.package.exists",
+        "class": "post-package",
+        "severity": "pass",
+        "message": "Recorded package paths resolve on disk in M8 smoke environments.",
+        "evidence": {
+          "type": "file",
+          "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/package/hello-level_0.1.0_Mac_shipping.zip",
+          "detail": "placeholder path; bytes not committed in M3-P3 fixture"
+        }
+      },
+      {
+        "guard_id": "guard.package.manifest",
+        "class": "post-package",
+        "severity": "pass",
+        "message": "manifest_path present in package envelope.",
+        "evidence": {
+          "type": "manifest",
+          "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/package/manifest.json",
+          "detail": "aggregate manifest referenced (doc-only)"
+        }
+      }
+    ]
+  }
+}

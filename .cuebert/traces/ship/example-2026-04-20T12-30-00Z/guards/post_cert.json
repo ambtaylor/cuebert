@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "phase": "post_cert",
+  "verdict": "pass",
+  "evaluated_at": "2026-04-20T12:50:15Z",
+  "project_key": "hello-level",
+  "engine": "unreal",
+  "guard_config_version": 1,
+  "guards": {
+    "pre_cook": [],
+    "post_cook": [],
+    "post_cert": [
+      {
+        "guard_id": "guard.cert.report_emitted",
+        "class": "post-cert",
+        "severity": "pass",
+        "message": "cert/report.md exists and is non-empty for indie-light profile.",
+        "evidence": {
+          "type": "file",
+          "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cert/report.md",
+          "detail": "non-empty markdown body"
+        }
+      },
+      {
+        "guard_id": "guard.cert.severity_floor",
+        "class": "post-cert",
+        "severity": "pass",
+        "message": "Zero fail findings; warn count within max_warn_findings threshold.",
+        "evidence": {
+          "type": "text",
+          "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cert/envelope.json",
+          "detail": "fail=0 warn=2 max_warn_findings=10"
+        }
+      }
+    ],
+    "post_package": []
+  }
+}

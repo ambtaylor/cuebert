@@ -47,6 +47,10 @@ Thumbs.db
 .cuebert/traces/play/*
 !.cuebert/traces/play/example-*/
 !.cuebert/traces/play/example-*/**
+!.cuebert/traces/ship/
+.cuebert/traces/ship/*
+!.cuebert/traces/ship/example-*/
+!.cuebert/traces/ship/example-*/**
 .cuebert/credentials.local.json
 
 # Secrets (belt and suspenders; vault is the real mechanism)

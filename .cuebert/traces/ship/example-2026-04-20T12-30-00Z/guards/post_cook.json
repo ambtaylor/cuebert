@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "phase": "post_cook",
+  "verdict": "pass",
+  "evaluated_at": "2026-04-20T12:45:10Z",
+  "project_key": "hello-level",
+  "engine": "unreal",
+  "guard_config_version": 1,
+  "guards": {
+    "pre_cook": [],
+    "post_cook": [
+      {
+        "guard_id": "guard.cook.exit_code",
+        "class": "post-cook",
+        "severity": "info",
+        "message": "Cook exit_code=0 observed; strict evaluator M8-P1.",
+        "evidence": {
+          "type": "log",
+          "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cook/engine.log",
+          "detail": "tail shows Result: Success"
+        }
+      },
+      {
+        "guard_id": "guard.cook.missing_assets",
+        "class": "post-cook",
+        "severity": "info",
+        "message": "Inventory enumerator spec-only (M8-P1).",
+        "evidence": {
+          "type": "manifest",
+          "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cooked/Win64/",
+          "detail": "manifest scan skipped"
+        }
+      },
+      {
+        "guard_id": "guard.cook.size_budget",
+        "class": "post-cook",
+        "severity": "info",
+        "message": "Within warn_bytes for both platforms; fail_multiplier not triggered.",
+        "evidence": {
+          "type": "text",
+          "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cook/envelope.json",
+          "detail": "Win64 3221225472 <= 5368709120"
+        }
+      }
+    ],
+    "post_cert": [],
+    "post_package": []
+  }
+}

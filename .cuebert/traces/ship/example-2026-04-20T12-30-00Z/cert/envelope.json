@@ -1,0 +1,33 @@
+{
+  "profile": "indie-light",
+  "verdict": "warn",
+  "findings": [
+    {
+      "check_id": "cert.indie-light.exec-name",
+      "profile": "indie-light",
+      "severity": "warn",
+      "evidence": {
+        "type": "file",
+        "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cooked/Win64/HelloLevel-Win64-Shipping-42.exe",
+        "detail": "Executable stem contains build number suffix; non-blocking for indie-light profile in this example."
+      },
+      "message": "Exec name contains build number suffix — non-blocking for indie-light."
+    },
+    {
+      "check_id": "cert.indie-light.metadata-slice",
+      "profile": "indie-light",
+      "severity": "warn",
+      "evidence": {
+        "type": "text",
+        "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cooked/Mac/HelloLevel-Mac-Shipping.app/Contents/Info.plist",
+        "detail": "Marketing version string differs from semver patch by policy drift; operator acknowledged."
+      },
+      "message": "Version string drift between plist CFBundleShortVersionString and ship plan semver patch."
+    }
+  ],
+  "platform_summaries": {
+    "Win64": { "checks_run": 6, "fail": 0, "warn": 1, "info": 0 },
+    "Mac": { "checks_run": 6, "fail": 0, "warn": 1, "info": 0 }
+  },
+  "report_path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cert/report.md"
+}
