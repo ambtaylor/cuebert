@@ -67,7 +67,8 @@ The following phases are **logical steps** the harness will implement. Names ali
 
 - **Goal:** If all guards and QA gates pass, **commit** to the **current local branch** with a message derived from the change list.  
 - **Remote:** `/play` **does not push** to `origin` by default. Operators may push manually or a later milestone may add an opt-in flag — **deferred beyond M2-P4** unless explicitly specified in a future plan revision.  
-- **Implementation:** **M2-P4** documents `milestone_commit` / branch expectations; git automation may remain manual until tool support lands.
+- **Implementation:** **M2-P4** documents `milestone_commit` / branch expectations; git automation may remain manual until tool support lands.  
+- **Worked example (dry run):** `docs/_ai_system/examples/play-sample-run-hello-level.md`.
 
 **Ordering:** `Plan → Author → Preview → QA → Merge` is the **happy path**. Remediation loops (Author re-run after QA failure) follow patterns analogous to Cue’s orchestrator remediation, but **exact circuit-breaker counts and memory injections** for `/play` are **deferred to M2-P2** — do not assume parity with `/o` §4A until documented there.
 
@@ -199,6 +200,8 @@ Each guard failure row MUST cite **artifact paths** (log file, screenshot diff j
 ---
 
 ## 5. Inputs and outputs
+
+A reusable `/play` plan template for humans and harness bootstrapping lives at **`docs/projects/_templates/play-plan-template.md`**.
 
 ### 5.1 Inputs
 

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "phase": "post_author",
+  "verdict": "pass",
+  "evaluated_at": "2026-04-20T12:00:18Z",
+  "project_key": "hello-level",
+  "engine": "unreal",
+  "guard_config_version": 1,
+  "guards": {
+    "post_author": [
+      {
+        "guard_id": "guard.asset.refs_valid",
+        "class": "post-author",
+        "severity": "info",
+        "message": "Evaluator spec-only (M5-P3); no deep linker graph in M2 dry run.",
+        "evidence": {
+          "type": "file",
+          "path": "Content/Maps/TestMap.umap",
+          "detail": "refs not resolved in example"
+        }
+      },
+      {
+        "guard_id": "guard.compile.status",
+        "class": "post-author",
+        "severity": "info",
+        "message": "Evaluator spec-only (M6-P1); author reported compile ok.",
+        "evidence": {
+          "type": "text",
+          "path": "author/envelope.json",
+          "detail": "compile_status=ok"
+        }
+      },
+      {
+        "guard_id": "guard.scope.bleed",
+        "class": "post-author",
+        "severity": "pass",
+        "message": "All changed paths match declared scope globs.",
+        "evidence": {
+          "type": "file",
+          "path": "Source/Game/Placeholder/PlaceholderCube.cpp",
+          "detail": "matched Source/Game/Placeholder/**/*.cpp"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "phase": "post_preview",
+  "verdict": "pass",
+  "evaluated_at": "2026-04-20T12:00:40Z",
+  "project_key": "hello-level",
+  "engine": "unreal",
+  "guard_config_version": 1,
+  "guards": {
+    "post_preview": [
+      {
+        "guard_id": "guard.log.error_floor",
+        "class": "post-preview",
+        "severity": "pass",
+        "message": "Zero ERROR-class lines in sampled preview window.",
+        "evidence": {
+          "type": "log",
+          "path": "preview/engine.log",
+          "detail": "error_count=0"
+        }
+      },
+      {
+        "guard_id": "guard.log.fatal",
+        "class": "post-preview",
+        "severity": "pass",
+        "message": "No fatal-class patterns matched.",
+        "evidence": {
+          "type": "log",
+          "path": "preview/engine.log",
+          "detail": "fatal_count=0"
+        }
+      },
+      {
+        "guard_id": "guard.preview.ready_marker",
+        "class": "post-preview",
+        "severity": "info",
+        "message": "Evaluator spec-only (M5-P1); log contains illustrative ready lines only.",
+        "evidence": {
+          "type": "log",
+          "path": "preview/engine.log",
+          "detail": "ready marker heuristic not executed"
+        }
+      },
+      {
+        "guard_id": "guard.screenshot.exists",
+        "class": "post-preview",
+        "severity": "pass",
+        "message": "At least one capture artifact present for screenshots mode.",
+        "evidence": {
+          "type": "file",
+          "path": "preview/screenshots/frame_0001.png.txt",
+          "detail": "placeholder file stands in for PNG in M2-P4 example"
+        }
+      }
+    ]
+  }
+}

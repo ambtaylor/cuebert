@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "play_run_id": "example-2026-04-20T12-00-00Z",
+  "project": "hello-level",
+  "engine": "unreal",
+  "started_at": "2026-04-20T12:00:00Z",
+  "ended_at": "2026-04-20T12:00:45Z",
+  "duration_ms": 45000,
+  "verdict": "pass",
+  "phase_verdicts": {
+    "pre_author": "pass",
+    "post_author": "pass",
+    "post_preview": "pass",
+    "qa": "pass"
+  },
+  "artifacts": {
+    "trace_root": ".cuebert/traces/play/example-2026-04-20T12-00-00Z/",
+    "readme": ".cuebert/traces/play/example-2026-04-20T12-00-00Z/README.md",
+    "guards_pre_author": ".cuebert/traces/play/example-2026-04-20T12-00-00Z/guards/pre_author.json",
+    "guards_post_author": ".cuebert/traces/play/example-2026-04-20T12-00-00Z/guards/post_author.json",
+    "guards_post_preview": ".cuebert/traces/play/example-2026-04-20T12-00-00Z/guards/post_preview.json",
+    "author_envelope": ".cuebert/traces/play/example-2026-04-20T12-00-00Z/author/envelope.json",
+    "preview_envelope": ".cuebert/traces/play/example-2026-04-20T12-00-00Z/preview/envelope.json",
+    "preview_engine_log": ".cuebert/traces/play/example-2026-04-20T12-00-00Z/preview/engine.log",
+    "preview_screenshots_dir": ".cuebert/traces/play/example-2026-04-20T12-00-00Z/preview/screenshots/",
+    "qa_envelope": ".cuebert/traces/play/example-2026-04-20T12-00-00Z/qa/envelope.json"
+  },
+  "findings": []
+}

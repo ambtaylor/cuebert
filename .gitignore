@@ -41,7 +41,12 @@ Thumbs.db
 !.cuebert/vault/.gitkeep
 !.cuebert/vault/shared/
 !.cuebert/vault/shared/.gitkeep
-.cuebert/traces/
+# Runtime trace artifacts — ignored except for curated documentation examples.
+.cuebert/traces/*
+!.cuebert/traces/play/
+.cuebert/traces/play/*
+!.cuebert/traces/play/example-*/
+!.cuebert/traces/play/example-*/**
 .cuebert/credentials.local.json
 
 # Secrets (belt and suspenders; vault is the real mechanism)

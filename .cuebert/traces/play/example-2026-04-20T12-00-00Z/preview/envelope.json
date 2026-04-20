@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "screenshots": [
+    ".cuebert/traces/play/example-2026-04-20T12-00-00Z/preview/screenshots/frame_0001.png.txt"
+  ],
+  "log_tail": "LogWorld: UWorld::CleanupWorld for TestMap, bSessionEnded=true, bCleanupResources=true\nLogWorld: BeginTearingDown for /Game/Maps/TestMap\nLogPlayLevel: Display: Shutting down PIE online subsystems\nLogSlate: Updating window title bar state: overlay mode, drag disabled, window buttons hidden, title bar hidden\nLogAudio: Display: Audio Device unregistered from world 0.\nLogUObjectHash: Compacting FUObjectHashTables data took   0.42ms\nLogPlayLevel: Display: Destroying online subsystem :Context_1\nLogExit: Preparing to exit.\nLogRenderer: Display: Waited for render fences 0.0 ms\nLogWorld: UWorld::CleanupWorld for TestMap, bSessionEnded=true, bCleanupResources=true\nLogExit: Exiting.\nLog file closed, 04/20/26 12:00:44",
+  "exit_code": 0,
+  "duration_ms": 15000
+}

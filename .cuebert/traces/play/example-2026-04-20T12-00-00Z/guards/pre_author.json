@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "phase": "pre_author",
+  "verdict": "pass",
+  "evaluated_at": "2026-04-20T12:00:05Z",
+  "project_key": "hello-level",
+  "engine": "unreal",
+  "guard_config_version": 1,
+  "guards": {
+    "pre_author": [
+      {
+        "guard_id": "guard.engine.reachable",
+        "class": "pre-author",
+        "severity": "info",
+        "message": "Evaluator spec-only (M5-P1); harness recorded stub outcome while spec_only_as_info is true.",
+        "evidence": {
+          "type": "file",
+          "path": "Engine/Binaries/Editor/UnrealEditor",
+          "detail": "not executed in documentation dry run"
+        }
+      },
+      {
+        "guard_id": "guard.project.exists",
+        "class": "pre-author",
+        "severity": "info",
+        "message": "Evaluator spec-only (M5-P1); manifest lookup treated as illustrative for hello-level dry run.",
+        "evidence": {
+          "type": "manifest",
+          "path": ".cuebert/workspace-manifest.json",
+          "detail": "projects.hello-level absent in committed manifest; example only"
+        }
+      },
+      {
+        "guard_id": "guard.scope.allowlist",
+        "class": "pre-author",
+        "severity": "pass",
+        "message": "Declared globs do not target hub meta trees.",
+        "evidence": {
+          "type": "file",
+          "path": "Content/Maps/TestMap.umap",
+          "detail": "scope declaration validated"
+        }
+      }
+    ]
+  }
+}
