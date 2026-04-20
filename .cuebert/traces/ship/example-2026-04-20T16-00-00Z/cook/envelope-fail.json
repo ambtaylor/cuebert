@@ -1,0 +1,37 @@
+{
+  "status": "fail",
+  "mode": "live",
+  "project_path": "/path/to/HelloLevel.uproject",
+  "target_platform": "Win64",
+  "target_store": "internal",
+  "build_config": "Shipping",
+  "phases": [
+    {
+      "name": "cook",
+      "status": "fail",
+      "started_at": "2026-04-20T16:00:05Z",
+      "duration_s": 45.2,
+      "exit_code": 25,
+      "trace_dir": ".cuebert/traces/ship/example-2026-04-20T16-00-00Z/cook/",
+      "detail": "UAT BuildCookRun exited non-zero during cook"
+    }
+  ],
+  "artifacts": {
+    "cooked_content": null,
+    "staged_build": null,
+    "package_size_mb": null,
+    "manifest_path": null
+  },
+  "error": {
+    "phase": "cook",
+    "message": "Cook failed; see log_tail",
+    "log_tail": [
+      "[2026.04.20-16.00.50:123][  0]LogInit: Display: Running engine for game: HelloLevel",
+      "[2026.04.20-16.00.51:124][  0]LogCook: Display: Cook by the book",
+      "[2026.04.20-16.00.52:125][  0]LogCook: Error: Failed to load map /Game/Maps/MissingMap",
+      "[2026.04.20-16.00.52:126][  0]LogCook: Error: Cook failed",
+      "[2026.04.20-16.00.53:127][  0]LogExit: Display: Exiting abnormally (error code 25)"
+    ]
+  },
+  "memory_id": null
+}

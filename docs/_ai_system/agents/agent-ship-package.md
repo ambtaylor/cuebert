@@ -8,23 +8,31 @@
 
 ## 1. Role
 
-You bundle **cooked build output** into the configured **distribution format** and emit **checksummed package artifacts** plus an **aggregate package manifest** suitable for post-package Ship Guards and optional upload (`agent-ship-upload.md`). You assume **cook outputs exist** and **cert verdict is not `fail`** when cert was in scope.
+Within `/ship`, **`agent-ship-package`** is a **thin delegator** to **`agent-cook-package-game`** with **`skip_cook: true`** and **`skip_package: false`**, so only the **`stage`** and **`package`** internal phases run. **Cook** MUST have completed in an earlier `/ship` step (via **`agent-ship-cook`**). Pre-requisite **post-cook** gates (**`ship.qa_resilience`**, legacy **`guard.cook.*`**) have **already** passed.
+
+The delegator **returns** the child envelope with **`phases[]` filtered** to **`stage`** + **`package`** when the harness requests a package-phase summary, or the **full** child envelope otherwise. **`ship.cook_package`** evaluates all three internal phases across the split dispatches; this call satisfies **phases 2–3**.
+
+**Non-goal:** No direct **UAT** / subprocess invocation — all automation routes through **`agent-cook-package-game`**. **`agent-cert-game`** runs **after** package per `agent-ship.md` §3.5; this role does **not** invoke cert.
 
 ---
 
 ## 2. Inputs
 
-| Input | Required | Description |
+Pass-through to **`agent-cook-package-game`** §2 with:
+
+| Field | Required | Description |
 |-------|----------|-------------|
-| **`project`** | Yes | Manifest key; used in naming convention (§7). |
-| **`version`** | Yes | Object with **`semver`**, **`build_number`**, optional **`internal_label`** — mirrors `agent-ship.md` §5.1 `version` block. |
-| **`cooked_paths`** | Yes | Per-platform directories from **`agent-ship-cook.md`** §8. |
-| **`target_platforms`** | Yes | Drives one package per platform (default) unless harness batches. |
-| **`package_format`** | Yes | `zip` \| `installer` \| `platform-native` — from ship plan. |
-| **`output_dir`** | Yes | Typically **`.cuebert/traces/ship/<timestamp>/packaged/`**. |
-| **`cert_verdict`** | No | From **`agent-ship-cert.md`** §7; when absent and profile was `none`, harness supplies `skip`. |
-| **`cook_flavor`** | No | `development` \| `shipping` \| `debug` — used in filename stem (§7). |
-| **`git_sha`** | No | Short SHA for non-shipping filename suffix (§7); harness-supplied. |
+| **`project_path`** | Yes | Absolute `.uproject` path. |
+| **`target_platform`** | Yes | Platform token (for example `Win64`). |
+| **`target_store`** | Yes | Store token per child rules. |
+| **`build_config`** | Yes | Maps from ship plan flavor. |
+| **`skip_cook`** | Yes | **`true`** — stage/package only. |
+| **`skip_package`** | Yes | **`false`**. |
+| **`caller`** | Yes | **`agent-ship-package`**. |
+
+**Optional:** `maps`, `cultures`, `compression`, `output_dir`, `extra_uat_args`, `timeout_s` per child spec.
+
+**Legacy envelope fields** (`cooked_paths`, `package_format`, `version`, `cert_verdict`) MAY still appear in ship plans for documentation; the harness **maps** them into the child JSON and trace naming — they are **not** parallel packaging paths when **`agent-cook-package-game`** is active.
 
 ---
 
@@ -32,9 +40,10 @@ You bundle **cooked build output** into the configured **distribution format** a
 
 | Output | Description |
 |--------|-------------|
-| **Per-platform package files** | Archive or installer artifact path per platform under `output_dir`. |
-| **SHA-256 checksums** | One digest per package file (hex lowercase **recommended**). |
-| **Aggregate manifest** | JSON index of all packages, sizes, checksums, determinism flags (**§8**). |
+| **Child envelope** | Full **`agent-cook-package-game`** §3 object. |
+| **Filtered view** | `phases[]` containing **`stage`** and **`package`** rows only when returning a package-phase summary. |
+| **`artifacts`** | **`staged_build`**, **`package_size_mb`**, **`manifest_path`** populated per child rules; feeds post-package guards and **`agent-cert-game`** `build_path`. |
+| **Failure propagation** | Any **`fail`** / **`error`** in **stage** or **package** MUST surface to **`ship.cook_package`** (halt unless advisory demotion or user-direct-debug override). |
 
 ---
 
@@ -104,36 +113,38 @@ hello-level_0.1.0_Win64_development_abc1234.zip
 
 ## 7. Protocol
 
-1. **Validate cert verdict** — If `cert_verdict == "fail"`, **abort** with `verdict: "fail"` in package envelope and **no** packages written (or write **empty** manifest with failure notes — harness picks **M3-P3**).  
-2. **For each platform** — Bundle `cooked_paths[platform]` according to `package_format` (§4).  
-3. **Compute checksum** — SHA-256 over final artifact bytes.  
-4. **Write manifest** — Append per-package record (§8) to **`manifest.json`** in `output_dir`.  
-5. **Emit envelope** — Return §8 JSON + paths to harness.
+1. **Confirm upstream cook** — Verify cook-phase success is recorded in the session trace (or re-read **`agent-cook-package-game`** artifacts) before dispatching stage/package.  
+2. **Build child request** — **`skip_cook: true`**, **`skip_package: false`**, **`caller: "agent-ship-package"`**, plus `project_path` / platform / store / config tuple.  
+3. **Dispatch** `agent-cook-package-game` — Child runs **stage** then **package** per §4.  
+4. **On failure** — Return child **`fail`** / **`error`** to `/ship`; attach log tail per **`ship.cook_package`**.  
+5. **On success** — Return envelope; post-package **`guard.package.*`** evaluators consume **`artifacts`** as implemented in M8 harness work.  
+6. **Cert handoff** — Pass **`artifacts.staged_build`** (or packaged root per plan) to **`agent-ship-cert`** as **`build_path`** for **`agent-cert-game`** (next `/ship` phase).
 
 ---
 
 ## 8. Output envelope (JSON shape)
 
-Consumed by **`agent-ship-upload.md`** (`packages` list).
+**Normative:** **`agent-cook-package-game.md`** §3. Illustrative **stage + package** summary:
 
 ```json
 {
-  "packages": [
-    {
-      "platform": "Win64",
-      "format": "zip",
-      "path": ".cuebert/traces/ship/2026-04-20T120000Z/packaged/hello-level_0.1.0_Win64_shipping.zip",
-      "size_bytes": 1234567890,
-      "sha256": "<hex>",
-      "deterministic": true
-    }
+  "status": "pass",
+  "mode": "dry_run",
+  "project_path": "/path/to/HelloLevel.uproject",
+  "phases": [
+    {"name": "stage", "status": "pass", "duration_s": 15.2, "exit_code": 0},
+    {"name": "package", "status": "pass", "duration_s": 8.7, "exit_code": 0}
   ],
-  "manifest_path": ".cuebert/traces/ship/2026-04-20T120000Z/packaged/manifest.json",
-  "verdict": "pass"
+  "artifacts": {
+    "cooked_content": "/path/to/HelloLevel/Saved/Cooked/Win64/",
+    "staged_build": "/path/to/HelloLevel/Saved/StagedBuilds/Win64-Shipping/",
+    "package_size_mb": 1843.5,
+    "manifest_path": null
+  }
 }
 ```
 
-**`verdict`:** `pass` \| `fail` — packaging-level only; does not override cert semantics.
+**Legacy §8 zip manifest** (`packages[]`, `verdict`) MAY still be produced by a future harness adapter for **`agent-ship-upload.md`**; until then, upload phase consumes paths from **`artifacts`** and ship rollup.
 
 ---
 
@@ -220,10 +231,9 @@ Upload phase MUST re-verify checksums; package phase SHOULD store **relative** p
 |-----|-----|
 | `agent-ship.md` | Package phase, ship envelope aggregation |
 | `agent-ship-cook.md` | Upstream `cooked_paths` |
-| `agent-ship-cert.md` | Upstream `cert_verdict` |
+| `agent-cook-package-game.md` | Child agent |
+| `agent-ship-cert.md` | Downstream; cert runs **after** package |
 | `agent-ship-upload.md` | Downstream consumer of `packages` |
-| `agent-cook-package-game.md` | **M8-P1** cook/stage/package orchestration spec (**M8-P3** dispatch) |
-| `cook-package-commands.md` | UAT **`BuildCookRun`** argv catalog |
 
 ---
 
@@ -296,4 +306,4 @@ Parent `agent-ship.md` §3.9 **Package** slim references `INPUT_ROOT` / `OUTPUT_
 
 ---
 
-Status: M3-P2 (protocol stub). zip adapter full impl: M8. installer/platform-native: operator-supplied post-M8.
+Status: M8-P3 (delegator to **`agent-cook-package-game`**). Legacy zip-only adapter narrative retained in §4 for non-UE futures.

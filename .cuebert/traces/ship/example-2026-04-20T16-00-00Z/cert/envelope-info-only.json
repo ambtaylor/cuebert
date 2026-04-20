@@ -1,0 +1,39 @@
+{
+  "status": "info",
+  "mode": "dry_run",
+  "project_path": "/path/to/HelloLevel.uproject",
+  "build_path": "/path/to/HelloLevel/Saved/StagedBuilds/Win64-Shipping/",
+  "target_platform": "Win64",
+  "target_store": "internal",
+  "build_config": "Shipping",
+  "findings": [
+    {
+      "checklist_id": "metadata.game_description_set",
+      "category": "metadata",
+      "severity": "info",
+      "detail": "GameDescription not set",
+      "evidence": {
+        "file_path": "Config/DefaultGame.ini",
+        "config_key": "GameDescription"
+      }
+    },
+    {
+      "checklist_id": "save_game.cloud_save_configured",
+      "category": "save_game",
+      "severity": "info",
+      "detail": "Cloud save not configured (optional for internal store)",
+      "evidence": {
+        "file_path": null,
+        "config_key": null
+      }
+    }
+  ],
+  "summary": {
+    "total_checklists_evaluated": 12,
+    "warn_count": 0,
+    "info_count": 2,
+    "skipped_count": 4
+  },
+  "checklist_version": "1.0.0",
+  "memory_id": null
+}

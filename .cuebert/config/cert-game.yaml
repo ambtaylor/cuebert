@@ -63,5 +63,8 @@ scope:
     required: false
     allowed: false
 
-spec_only_as_info: true    # M8-P2: findings non-blocking. M8-P3 flip stays non-blocking (cert-game is always advisory).
+# M8-P2: spec_only_as_info=true (findings non-blocking).
+# M8-P3: advisory_always=true remains; cert-game findings NEVER block ship
+# regardless of spec_only_as_info state. This is a permanent contract.
+spec_only_as_info: true
 advisory_always: true      # Cert-game findings NEVER block. Flag present to make this contract explicit.

@@ -39,88 +39,79 @@
 
 ---
 
-## 3. Phase chain (stub — implementation M3-P2 through M3-P3; full cook M8-P1, cert M8-P2)
+## 3. Phase chain (M8-P3 canonical order)
 
-Each phase declares a **strict entry gate**. Failing a gate **halts** the pipeline; the harness still runs **Attest** (§3.6) to write the ship envelope and perform memory hooks (§13). Phases are **logical steps** aligned with future subagent stubs (`agent-ship-*`, §11).
+**Canonical phase order** (enforced in M8-P3):
+
+```text
+Phases:
+  1. pre_cook
+     ├── ship.prod_readiness   (M7-P3 enforced; REJECT gate)
+     └── ...existing pre-cook guards
+  2. cook
+     ├── delegated to agent-ship-cook → agent-cook-package-game
+     └── ship.cook_package (M8-P3, NEW; enforced; fail halts ship)
+  3. post_cook
+     ├── ship.qa_resilience    (M7-P3 enforced; REJECT gate for critical/error)
+     └── ...existing post-cook guards
+  4. package
+     ├── delegated to agent-ship-package → agent-cook-package-game
+     └── ship.cook_package continues evaluation here (multi-phase guard)
+  5. cert
+     ├── delegated to agent-ship-cert → agent-cert-game
+     └── ship.cert_advisory (M8-P3, NEW; advisory-only, never blocks)
+  6. upload (optional, dry-run default)
+```
+
+Each phase declares entry gates per §4 and `ship-guards.md`. Failing a **blocking** gate **halts** the pipeline; the harness still runs **Attest** (§3.7) to write the ship envelope and perform memory hooks (§13). Phases are **logical steps** aligned with `agent-ship-*` dispatchers (§11).
 
 ### 3.1 Pre-cook
 
 - **Goal:** Validate **tree cleanliness** and **manifest alignment**: no uncommitted changes in the declared ship scope, no disallowed untracked files under cookable directory roots, no **unreferenced** assets per policy (warn-class where deterministic), **engine version** matches project + workspace manifest.  
-- **Gating:** **Pre-cook Ship Guards** (§4.1) MUST pass (per severities in §8) before any cook subprocess is invoked.  
+- **Gating:** **Pre-cook Ship Guards** (§4.1) MUST pass (per severities in §8) before any cook subprocess is invoked. **`ship.prod_readiness`** (below) runs in this bucket.  
 - **Dispatch:** Harness-owned evaluation + optional **`generalPurpose`** read-only Task for git/manifest scanning — exact split **M3-P3**.  
-- **Implementation:** Guard contract **M3-P1** (this doc); default config path **`.cuebert/config/ship-guards.yaml`** — **M3-P3**; evaluators **M8** (UE Tier 1 first).
-
-### Pre-ship readiness scan (`ship.prod_readiness`, M7-P2 spec, M7-P3 enforced)
-
-Before cook begins, `/ship` dispatches `agent-prod-readiness-game` under guard
-**`ship.prod_readiness`** with:
-
-- `project_path` from the ship plan.
-- `target_platform`, `target_store`, `build_config` from the ship plan.
-
-If any **REJECT** finding is returned and the **`user-direct-debug`** override
-is not active (see §7.1), `/ship` halts with an error envelope surfacing the
-findings. **INFO** findings are logged but do not block.
-
-**M7-P3** makes this a **strict gate** by default (`spec_only_as_info: false` in
-`.cuebert/config/prod-readiness-game.yaml`). The earlier **advisory-only**
-behavior is **deprecated** for new hub checkouts; projects still migrating MAY
-set **`spec_only_as_info: true`** temporarily (transitional advisory demotion
-per `ship-guards.md` §2.2 and §11).
-
-See: [`agent-prod-readiness-game.md`](./agent-prod-readiness-game.md),
-[`prod-readiness-game-rules.md`](../standards/prod-readiness-game-rules.md).
+- **`ship.prod_readiness` (M7-P2 spec, M7-P3 enforced):** Before cook begins, `/ship` dispatches `agent-prod-readiness-game` with `project_path`, `target_platform`, `target_store`, and `build_config` from the ship plan. If any **REJECT** finding is returned and the **`user-direct-debug`** override is not active (§7.1), `/ship` halts with an error envelope. **INFO** findings are logged but do not block. Default **enforced** (`spec_only_as_info: false` in `.cuebert/config/prod-readiness-game.yaml`); transitional advisory demotion per `ship-guards.md` §2.2. See [`agent-prod-readiness-game.md`](./agent-prod-readiness-game.md), [`prod-readiness-game-rules.md`](../standards/prod-readiness-game-rules.md).
 
 ### 3.2 Cook
 
-- **Goal:** Invoke the engine’s **cook** pipeline: Unreal **UAT BuildCookRun** (proposed tool name `ue_uat_cook`, **proposed, M8-P1**), Unity **Build Pipeline** entry (proposed, post-M8), Godot **export** CLI (proposed, post-M8).  
-- **Gating:** Pre-cook guards **PASS**; cook subprocess contract satisfied before post-cook guards consume outputs.  
-- **Dispatch:** **`agent-ship-cook`** — **stub M3-P2**, full UE implementation **M8-P1**.  
-- **Implementation:** **M3-P2** stub envelope only; **M8-P1** minimum viable cooked output for documented platforms.
+- **Goal:** Invoke the engine **cook** pipeline (Unreal **UAT BuildCookRun** via **`unreal-build`** MCP tools per [`agent-cook-package-game.md`](./agent-cook-package-game.md)).  
+- **Gating:** Pre-cook gates **PASS**; **`ship.cook_package`** evaluates the **`cook`** row in `agent-cook-package-game` `phases[]` (halt on `fail` / `error` unless `cook-package-game.yaml` advisory demotion).  
+- **Dispatch:** **`agent-ship-cook`** — thin delegator to **`agent-cook-package-game`** with **`skip_package: true`** (cook-only invocation). See [`agent-ship-cook.md`](./agent-ship-cook.md).  
+- **Non-goal:** No direct UAT subprocesses from the cook subagent; all automation routes through **`agent-cook-package-game`**.
 
-### 3.3 Cert
+### 3.3 Post-cook
 
-- **Goal:** Run **platform certification profile** checks: configurable **severity floor**, **required checklist ids** resolved from profile (`none` \| `indie-light` \| `platform-strict` in ship plan), aggregated into a **human-readable report** under the trace tree (§6). Cuebert supports a **cert profile system** with thresholds; **profile pack locations and checklist contents are out of scope for M3-P1** (vendor-confidential material is not reproduced here).  
-- **Gating:** Post-cook guards **PASS**; if `cert_profile: none`, the harness **skips** cert subagent work but still runs **post-cert guard** policy documented in §7 (severity floor treated as N/A).  
-- **Dispatch:** **`agent-ship-cert`** — **stub M3-P2**, full implementation **M8-P2**.  
-- **Implementation:** Stubs **M3-P2**; checklist engines **M8-P2**.
+- **Goal:** Validate cook outputs before staging/packaging: exit-shaped signals, size budgets, missing assets, and **`ship.qa_resilience`** scan of cook logs / staged artifacts.  
+- **Gating:** **`ship.qa_resilience`** dispatches `agent-qa-resilience-game` with **`session_kind: build`**; **critical** / **error** findings **halt** `/ship` (same override policy as M7-P3). Legacy **`guard.cook.*`** rows in §4.2 consume cook telemetry as documented.  
+- **Dispatch:** Harness-owned guard runner + prod-readiness-adjacent checks already complete; **no** cert dispatch in this bucket.
 
 ### 3.4 Package
 
-- **Goal:** Bundle cooked output into **`package_format`** (zip, installer stub, or platform-native layout per plan).  
-- **Gating:** Post-cert guards **PASS** when cert is in scope; else gate after cook only per §7.  
-- **Dispatch:** **`agent-ship-package`** — **stub M3-P2**, full **M8** packaging path for UE.  
-- **Implementation:** **M3-P2** stub; **M8** UE-first.
+- **Goal:** **Stage** and **package** cooked output into the distributable layout per ship plan (Unreal: **`agent-cook-package-game`** **`stage`** + **`package`** phases).  
+- **Gating:** Post-cook gates **PASS**; **`ship.cook_package`** continues for **`stage`** and **`package`** phases (any internal phase `fail` / `error` halts unless advisory demotion). Post-package **`guard.package.*`** checks (§4.2) run after artifacts are emitted.  
+- **Dispatch:** **`agent-ship-package`** — delegator to **`agent-cook-package-game`** with **`skip_cook: true`**, **`skip_package: false`**. See [`agent-ship-package.md`](./agent-ship-package.md).  
+- **Non-goal:** No direct UAT calls from the package subagent.
 
-### Cert phase advisory (M8-P2 spec)
+### 3.5 Cert
 
-After package succeeds, /ship dispatches `agent-cert-game` (spec M8-P2) which
-returns advisory cert-checklist findings. These findings are:
+- **Goal:** Run **advisory** cert-checklist scan (**`agent-cert-game`**, M8-P2) on the **staged / packaged** tree (`build_path` from cook-package artifacts). INFO/WARN findings only; **no** REJECT severity; **no** ship halt from cert findings.  
+- **Gating:** **`ship.cert_advisory`** surfaces findings into the ship envelope as **`cert_advisory: [...]`**; WARN findings log to memory at **info** severity per M8-P2 contract. If `cert_profile: none`, the harness may **skip** dispatch; policy mirrors `agent-cert-game` §skip semantics. Legacy **`guard.cert.*`** catalog rows (§4.2) remain for harnesses that still emit `cert/report.md` alongside **`agent-ship-cert`**; they do not elevate cert-game WARN to **fail** when `advisory_always: true`.  
+- **Dispatch:** **`agent-ship-cert`** — delegator to **`agent-cert-game`**. See [`agent-ship-cert.md`](./agent-ship-cert.md), [`agent-cert-game.md`](./agent-cert-game.md).
 
-- INFO/WARN severity only — cert-game NEVER halts /ship.
-- Surfaced in the ship envelope as `cert_advisory: [...]`.
-- Logged to memory on WARN findings (severity: info; NOT severity: warn, since
-  cert findings are advisory).
-
-Strict gate wiring lands M8-P3. Until then, the call is deferred and /ship
-proceeds without cert evaluation.
-
-See: [`agent-cert-game.md`](./agent-cert-game.md).
-
-### 3.5 Upload (optional)
+### 3.6 Upload (optional)
 
 - **Goal:** Push packaged artifact to **`upload_channel`** when not `none`.  
-- **Gating:** **Disabled by default** — requires **`upload_channel != none`** in ship plan **and** all prior guards **PASS** including post-package guards. Any failure → **no upload**, **BLOCKED** state for upload phase.  
+- **Gating:** **Disabled by default** — requires **`upload_channel != none`** in ship plan **and** all prior **blocking** guards **PASS** including post-package guards. Any failure → **no upload**, **BLOCKED** state for upload phase.  
 - **Dispatch:** **`agent-ship-upload`** — **stub M3-P2**, full implementation **post-M8**.  
 - **Credentials:** Resolved only via vault per `docs/_ai_system/standards/vault-standard.md` — never from ship plan files (§14).
 
-### 3.6 Attest (always)
+### 3.7 Attest (always)
 
 - **Goal:** Write the **ship envelope** (`envelope.json`) with **all phase verdicts**, artifact paths, checksums, version metadata, git SHA, engine version, cert summary pointers, and optional upload status. Run **mandatory memory hooks** (§13).  
 - **Gating:** None — **always executes** after halt or success so audits exist.  
 - **Skippable:** **No** — not skippable even when `--skip-memory` appears on other harnesses in older docs; for `/ship`, memory attestation is **policy-locked** in M3-P1 (future flags may not suppress `troubleshoot_commit` on failure — **M3-P3** reconciles with supervisor).
 
-### 3.7 Session outcomes (normative vocabulary)
+### 3.8 Session outcomes (normative vocabulary)
 
 | State | Meaning | Next action |
 |-------|---------|-------------|
@@ -129,7 +120,7 @@ See: [`agent-cert-game.md`](./agent-cert-game.md).
 | **`not_applicable`** | Engine automation or cook toolchain missing. | Human cook instructions in trace; envelope records reason; memory still commits (§13). |
 | **`complete`** | All required phases through Package passed; Upload skipped or succeeded; Attest succeeded. | Distribute artifact from trace path; optional store-side steps outside Cuebert. |
 
-### 3.8 Harness position in the cuebert chain
+### 3.9 Harness position in the cuebert chain
 
 ```text
 /play  →  /ship  →  (optional) /cook  …
@@ -139,7 +130,7 @@ See: [`agent-cert-game.md`](./agent-cert-game.md).
 - **`/ship`:** cook + cert + package (+ optional upload) — **distribution artifact**.  
 - **`/cook`:** deferred shortcut — **do not** assume `/ship` implies a separate `/cook` invocation in M3.
 
-### 3.9 Slim Task envelopes (sketches — M3-P2)
+### 3.10 Slim Task envelopes (sketches — M3-P2)
 
 Do **not** paste full canonical agent bodies into Task prompts. Follow `docs/_ai_system/agents/agent-orchestrator.md` §3: a **slim envelope** with repo/branch/project, engine, **ship plan pointer**, prior phase summary, artifact roots, and output contract. **`subagent_type`** is always **`generalPurpose`** per `.cursor/rules/cuebert-supervisor.mdc`.
 
@@ -207,7 +198,7 @@ ARTIFACT_PATH: [from Package]
 Upload ticket id or channel-specific handle; final URL if applicable; partial_failure markers on stream interrupt.
 ```
 
-### 3.10 Production Readiness bridge (INFO → REJECT)
+### 3.11 Production Readiness bridge (INFO → REJECT)
 
 The authoritative **Production Readiness Register** populated during `/o` runs may surface **INFO**-class findings during engineering. For `/ship`, the harness treats agreed **ship-blocking categories** as **REJECT-class** at Pre-cook or Post-cook gates — the **INFO → REJECT** bridge is part of **M3** stub work in the plan (`cuebert-gaming-system` M3 demo). Exact category mapping is **M3-P3**; this doc reserves the gate **before cook** for “no debug-only flags / no mock endpoints in shipping flavor” style checks without enumerating web-stack rules here.
 
@@ -335,63 +326,41 @@ Application repositories remain **zero-footprint** for cuebert control-plane tre
 
 ## 7. Guard decision tree
 
-**Phase sequence (canonical order, including M7-P3 `ship.*` gates):**
-
-```text
-Phases:
-  1. pre_cook
-     ├── ship.prod_readiness   (M7-P3, enforced)
-     └── [existing pre-cook guards]
-  2. cook
-  3. post_cook
-     ├── ship.qa_resilience    (M7-P3, enforced)
-     └── [existing post-cook guards]
-  4. pre_package
-  5. package
-  6. upload (optional, dry-run default)
-```
-
-The numbered pseudo-flow below inserts **CERT** and **POST-CERT** between
-**post-cook** and **package** when `cert_profile != none`. **`pre_package`** in
-the shorthand list is the span from **post-cook guards** through **post-cert
-guards** up to the **package** dispatch boundary.
+**Phase sequence (canonical order, M7-P3 + M8-P3 `ship.*` gates):** same tree as §3 opening diagram — **`pre_cook` → `cook` → `post_cook` → `package` → `cert` → `upload`**. Cert runs **after** package so `agent-cert-game` can scan **`build_path`** from **`agent-cook-package-game`** artifacts.
 
 Pseudo-flow (compare **`play-preview-guards.md` §7**):
 
 ```text
-1. PRE-COOK GUARDS
+1. PRE-COOK GUARDS + ship.prod_readiness (M7-P3)
    a. Load .cuebert/config/ship-guards.yaml + merge ship_guards_overrides + manifest overrides (M3-P3).
    b. Run enabled pre-cook guards in stable sorted order by guard_id.
-   c. If any resolved severity == fail -> HALT before cook; go to ATTEST (failure).
-   d. Else continue.
+   c. Dispatch agent-prod-readiness-game; halt on REJECT unless user-direct-debug override (§7.1).
+   d. If any resolved severity == fail -> HALT before cook; go to ATTEST (failure).
+   e. Else continue.
 
-2. COOK
-   a. Dispatch agent-ship-cook (stub M3-P2; real M8-P1).
-   b. If cook aborts -> HALT; ATTEST (failure).
+2. COOK + ship.cook_package (phase: cook)
+   a. Dispatch agent-ship-cook -> agent-cook-package-game (skip_package: true).
+   b. On agent top-level status fail/error for cook phase -> HALT unless advisory demotion
+      (cook-package-game.yaml spec_only_as_info) or user-direct-debug override for cook_package (§7.1).
+   c. Else continue.
 
-3. POST-COOK GUARDS
-   a. If any fail -> HALT before cert; ATTEST (failure).
+3. POST-COOK GUARDS + ship.qa_resilience (M7-P3)
+   a. If any fail -> HALT before package; ATTEST (failure).
    b. Else continue.
 
-4. CERT (skipped when cert_profile == none)
-   a. Dispatch agent-ship-cert when profile requires work.
-   b. If cert subagent errors -> HALT; ATTEST (failure).
+4. PACKAGE + ship.cook_package (phases: stage, package)
+   a. Dispatch agent-ship-package -> agent-cook-package-game (skip_cook: true).
+   b. On any cook-package-game phase fail/error -> HALT unless advisory demotion or override (§7.1).
+   c. POST-PACKAGE GUARDS: if any fail -> session BLOCKED for upload; ATTEST (failure or blocked_upload).
 
-5. POST-CERT GUARDS
-   a. If cert_profile == none: treat severity_floor checks as N/A (emit info findings only).
-   b. If any fail -> HALT before package; ATTEST (failure).
+5. CERT + ship.cert_advisory (M8-P3; never blocks)
+   a. Dispatch agent-ship-cert -> agent-cert-game when in scope; surface cert_advisory findings.
+   b. WARN/INFO findings do not halt; agent error envelope is diagnostic-only (no REJECT path).
 
-6. PACKAGE
-   a. Dispatch agent-ship-package.
-   b. If package errors -> HALT; ATTEST (failure).
-
-7. POST-PACKAGE GUARDS
-   a. If any fail -> session BLOCKED for upload; ATTEST (failure or blocked_upload).
-
-8. UPLOAD (only if upload_channel != none AND all prior guards passed)
+6. UPLOAD (only if upload_channel != none AND all blocking gates passed; dry-run default)
    a. Dispatch agent-ship-upload; on mid-stream failure -> envelope upload_status: partial_failure (§12).
 
-9. ATTEST (always)
+7. ATTEST (always)
    a. Write envelope.json with full phase story + checksums.
    b. Memory hooks per §13 (mandatory).
 ```
@@ -400,7 +369,8 @@ Pseudo-flow (compare **`play-preview-guards.md` §7**):
 
 When invoked as **`user-direct-debug`**, a caller may pass **`--override=accept-risk`**
 (equivalent envelope intent: **`override_reject: true`** for production readiness)
-to bypass either **`ship.prod_readiness`** or **`ship.qa_resilience`**. The override:
+to bypass **`ship.prod_readiness`**, **`ship.qa_resilience`**, or a **`ship.cook_package`**
+pipeline failure (FAIL gate — audit still required). The override:
 
 - Is honored **ONLY** for **`caller == "user-direct-debug"`**.
 - Is **NOT** honored when **`caller`** is any other agent (`agent-ship`,
@@ -410,6 +380,8 @@ to bypass either **`ship.prod_readiness`** or **`ship.qa_resilience`**. The over
 - Triggers an **audit entry** on every bypass: **`troubleshoot_commit`** severity
   **`warn`**, body includes **all findings** that would have blocked.
 - Does **NOT** auto-accept future runs; must be **re-specified** each time.
+- Does **NOT** apply to **`ship.cert_advisory`** — cert-game is **`advisory_always: true`**
+  and has no blocking behavior to bypass.
 
 Post-cook, **`agent-qa-resilience-game`** MUST be invoked with
 **`session_kind: build`** for the **`ship.qa_resilience`** gate (cook log and
@@ -461,16 +433,18 @@ staged artifact analysis). Advisory demotion for that agent follows
 
 The `/ship` harness will dispatch **`Task(subagent_type: "generalPurpose")`** roles whose first action is to read a canonical slim — same global prohibition as `/play` against named `.cursor/agents` auto-types as `subagent_type`.
 
-| Placeholder name | Milestone | Responsibility |
+| Logical role | Milestone | Responsibility |
 |------------------|-----------|------------------|
-| **`agent-ship-cook`** | **Stub M3-P2**; **full UE M8-P1** | Run engine cook; emit cook logs and output roots. |
-| **`agent-ship-cert`** | **Stub M3-P2**; **full M8-P2** | Run cert profile checks; write `cert/report.md` findings structure. |
-| **`agent-ship-package`** | **Stub M3-P2**; **full M8** | Produce packaged artifact + checksum + manifest. |
+| **`agent-ship-cook`** | **M8-P3** | Delegates to **`agent-cook-package-game`** (cook only; `skip_package: true`). |
+| **`agent-ship-package`** | **M8-P3** | Delegates to **`agent-cook-package-game`** (stage + package; `skip_cook: true`). |
+| **`agent-ship-cert`** | **M8-P3** | Delegates to **`agent-cert-game`** (advisory checklist scan); formats ship envelope. |
 | **`agent-ship-upload`** | **Stub M3-P2**; **full post-M8** | Optional channel upload; stream partial failure handling. |
+
+**Backing agents (not ship-named subagent_types):** **`agent-cook-package-game`** (M8-P1), **`agent-cert-game`** (M8-P2), **`agent-prod-readiness-game`** / **`agent-qa-resilience-game`** (M7; **`ship.*`** gates).
 
 A reusable **ship plan** template is at **`docs/projects/_templates/ship-plan-template.md`**. Worked dry-run example: **`docs/_ai_system/examples/ship-sample-run-hello-level.md`**.
 
-**Explicit statement:** These subagents **do not exist** as implemented slims in **M3-P1**. They are **logical roles** for future prompts.
+**Explicit statement:** Dispatch remains **`Task(subagent_type: "generalPurpose")`** reading these protocol docs; no gaming-named Cursor auto-types.
 
 ### 11.1 Dispatch rules (M3-P2+)
 
@@ -478,7 +452,7 @@ A reusable **ship plan** template is at **`docs/projects/_templates/ship-plan-te
 |------|--------|
 | **Task type** | Always `generalPurpose` unless a future milestone documents `shell` isolation for cook only — never gaming-named Cursor auto-types. |
 | **Harness location** | `/ship` coordinator runs in **main chat** per `.cursor/rules/cuebert-supervisor.mdc` (same family as `/d`). |
-| **Chaining** | Pre-cook → Cook → Post-cook → Cert (if any) → Post-cert → Package → Post-package → Upload (opt-in) → Attest. |
+| **Chaining** | Pre-cook → Cook → Post-cook → Package → Post-package → Cert (advisory) → Upload (opt-in) → Attest. |
 | **Parallelism** | **No** parallel cook or upload for the same session unless explicitly spec’d later. |
 
 ---
@@ -532,10 +506,10 @@ Nested under `/o`: Orchestrator memory bridges MAY add fields, but they **must n
 | `docs/_ai_system/agents/agent-orchestrator.md` | Main-chat harness + `--preview` pattern reference for future `/ship --preview` |
 | `.cursor/rules/cuebert-supervisor.mdc` | `/ship` stub until wired; forbidden `subagent_type` values |
 | `docs/projects/cue/plans/active/cuebert-gaming-system.md` | Authoritative milestone plan — M3/M8 ship scope |
-| `docs/_ai_system/standards/ship-guards.md` §2.2, §4.5, §11 | **`ship.prod_readiness`**, **`ship.qa_resilience`** contracts and M7-P3 enforcement status |
+| `docs/_ai_system/standards/ship-guards.md` §2.2, §4.5, §11 | **`ship.prod_readiness`**, **`ship.qa_resilience`**, **`ship.cook_package`**, **`ship.cert_advisory`** contracts and enforcement status |
 
 ---
 
 ## 16. Footer
 
-Status: M3-P1 (protocol doc). Subagent stubs: M3-P2. Wiring + config: M3-P3. Full UE implementation: M8.
+Status: M3-P1 protocol doc; M8-P3 integrates cook-package + cert-game dispatch and **`ship.cook_package`** / **`ship.cert_advisory`** guards. Executable harness: M3-P3+.

@@ -1,0 +1,36 @@
+{
+  "status": "pass",
+  "mode": "dry_run",
+  "project_path": "/path/to/HelloLevel.uproject",
+  "target_platform": "Win64",
+  "target_store": "internal",
+  "build_config": "Shipping",
+  "phases": [
+    {
+      "name": "stage",
+      "status": "pass",
+      "started_at": "2026-04-20T16:02:10Z",
+      "duration_s": 15.2,
+      "exit_code": 0,
+      "trace_dir": ".cuebert/traces/ship/example-2026-04-20T16-00-00Z/package/",
+      "detail": "Staged Win64-Shipping archive"
+    },
+    {
+      "name": "package",
+      "status": "pass",
+      "started_at": "2026-04-20T16:02:25Z",
+      "duration_s": 8.7,
+      "exit_code": 0,
+      "trace_dir": ".cuebert/traces/ship/example-2026-04-20T16-00-00Z/package/",
+      "detail": "Packaged layout ready"
+    }
+  ],
+  "artifacts": {
+    "cooked_content": "/path/to/HelloLevel/Saved/Cooked/Win64/",
+    "staged_build": "/path/to/HelloLevel/Saved/StagedBuilds/Win64-Shipping/",
+    "package_size_mb": 1843.5,
+    "manifest_path": null
+  },
+  "error": null,
+  "memory_id": null
+}

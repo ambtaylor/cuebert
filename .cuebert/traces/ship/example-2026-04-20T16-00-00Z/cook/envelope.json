@@ -1,0 +1,27 @@
+{
+  "status": "pass",
+  "mode": "dry_run",
+  "project_path": "/path/to/HelloLevel.uproject",
+  "target_platform": "Win64",
+  "target_store": "internal",
+  "build_config": "Shipping",
+  "phases": [
+    {
+      "name": "cook",
+      "status": "pass",
+      "started_at": "2026-04-20T16:00:05Z",
+      "duration_s": 120.5,
+      "exit_code": 0,
+      "trace_dir": ".cuebert/traces/ship/example-2026-04-20T16-00-00Z/cook/",
+      "detail": "Cooked 42 maps, 238 assets"
+    }
+  ],
+  "artifacts": {
+    "cooked_content": "/path/to/HelloLevel/Saved/Cooked/Win64/",
+    "staged_build": null,
+    "package_size_mb": null,
+    "manifest_path": null
+  },
+  "error": null,
+  "memory_id": null
+}

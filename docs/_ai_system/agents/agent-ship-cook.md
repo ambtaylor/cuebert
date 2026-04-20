@@ -8,26 +8,30 @@
 
 ## 1. Role
 
-You execute the engine's **cook** pipeline for a declared **project** + **cook flavor** and emit a **structured cook envelope** describing exit status, timing, per-platform cooked roots, size accounting, and log pointers. Pre-requisite **Ship Guards** (pre-cook) have **already** run in the harness; this subagent focuses on the cook subprocess lifecycle only — not certification, packaging, upload, or git state management.
+Within `/ship`, **`agent-ship-cook`** is a **thin delegator**: it dispatches **`agent-cook-package-game`** with **`skip_package: true`** so only the **cook** internal phase runs. Pre-requisite **Ship Guards** (pre-cook, including **`ship.prod_readiness`**) have **already** passed; this role does **not** re-run production readiness.
 
-The harness **MAY** also dispatch **`agent-prod-readiness-game`** for cook-time packaging checks (for example PDB presence, staged editor binaries) using the same INFO/REJECT envelope as `/ship` pre-flight. See `docs/_ai_system/agents/agent-prod-readiness-game.md` and `docs/_ai_system/standards/prod-readiness-game-rules.md` (**M7-P2** spec; evaluator **M7-P3**).
+The delegator **forwards** the child envelope to the harness, **filtered** to the **`cook`** row in `phases[]` (plus shared top-level fields: `status`, `mode`, `project_path`, `artifacts`, `error`, etc.). **`ship.cook_package`** (M8-P3) evaluates **`phases[*].status`** across cook, stage, and package; this dispatch satisfies **phase 1** of that multi-phase guard.
+
+**Non-goal:** No direct **UAT** / subprocess invocation from this doc's role — all automation is owned by **`agent-cook-package-game`** (which uses **`unreal-build`** MCP tools only). See [`agent-cook-package-game.md`](./agent-cook-package-game.md).
 
 ---
 
 ## 2. Inputs
 
-| Input | Required | Description |
-|-------|----------|-------------|
-| **`project`** | Yes | Key from **`.cuebert/workspace-manifest.json`** → `projects.{key}`; used for trace naming, manifest alignment, and vault-scoped future hooks. |
-| **`engine`** | Yes | `unreal` \| `unity` \| `godot` — selects **§5** adapter contract. |
-| **`cook_flavor`** | Yes | `development` \| `shipping` \| `debug` — must align with the parent ship plan's `cook_flavors` entry for the active session (harness normalizes to one flavor per cook invocation unless a future revision batches). |
-| **`target_platforms`** | Yes | List of platform tokens (for example `Win64`, `Mac`, `Linux` for Unreal; harness maps ship plan `target_platforms` to engine-native names). |
-| **`output_dir`** | Yes | Hub-resident cooked asset root, typically **`.cuebert/traces/ship/<timestamp>/cooked/`** (see §6). |
-| **`max_duration_s`** | No | Hard wall-clock budget for the cook subprocess family. **Default:** read from **`.cuebert/config/ship-guards.yaml`** → `global.cook_max_duration_s` when present; if absent until M3-P3 wiring, use **1800** (30 minutes). |
-| **`APP_REPO`** | Yes | Absolute path to the application repository root (from manifest `projects.{key}.path`). |
-| **`HUB_REPO`** | No | Absolute path to the cuebert hub checkout; used for trace-relative path normalization per `docs/_ai_system/standards/control-plane-paths.md`. |
+Pass-through to **`agent-cook-package-game`** §2 — **same JSON fields** as the child agent **except** do **not** set **`skip_cook`** (it stays **`false`** / omitted). The harness **MUST** set:
 
-**Harness alignment:** Field names mirror `agent-ship.md` §5.1 where applicable; the ship plan remains the **authoritative** contract for platforms and flavors.
+| Field | Required | Description |
+|-------|----------|-------------|
+| **`project_path`** | Yes | Absolute path to `.uproject` (from ship plan + manifest resolution). |
+| **`target_platform`** | Yes | Single platform token for this invocation (for example `Win64`). |
+| **`target_store`** | Yes | `steam` \| `epic` \| `gog` \| `itchio` \| `internal` (or null per child rules). |
+| **`build_config`** | Yes | `Shipping` \| `Test` \| `Development` — maps from ship plan `cook_flavors`. |
+| **`skip_package`** | Yes | **`true`** — cook-only dispatch. |
+| **`caller`** | Yes | **`agent-ship-cook`** (scope matrix). |
+
+**Optional** child fields (`maps`, `cultures`, `compression`, `output_dir`, `extra_uat_args`, `timeout_s`) follow **`agent-cook-package-game.md`** §2 when the harness supplies them.
+
+**Legacy slim fields** (`PROJECT_KEY`, `APP_REPO`, `HUB_REPO`) MAY appear in Task envelopes for human context; the **normative** dispatch body is the child JSON above.
 
 ---
 
@@ -35,54 +39,20 @@ The harness **MAY** also dispatch **`agent-prod-readiness-game`** for cook-time 
 
 | Output | Description |
 |--------|-------------|
-| **Cook exit code** | Integer process exit code from the engine cook driver (or wrapper); `null` only when the harness could not spawn the process. |
-| **Cooked asset count** | Per-platform **approximate** file count or engine-reported metric when available; **stub** until M8 enumerators exist. |
-| **Cook duration** | Wall-clock **milliseconds** from subprocess start to observed termination. |
-| **Log tail path** | Path to consolidated cook log (see §6) for post-cook guards and human triage. |
-| **Cooked content paths** | Map **platform → directory** under `output_dir` (or engine staging roots the harness re-homes). |
-| **Size report** | Per-platform **byte totals** for cooked trees (or primary staged artifact) for `guard.cook.size_budget` consumption. |
+| **Child envelope** | Full **`agent-cook-package-game`** §3 object returned by the child call. |
+| **Harness-facing view** | Same envelope **with `phases[]` filtered** to entries where **`name == "cook"`** (stage/package rows omitted from this subagent's return payload when the harness wants a cook-only summary; the trace tree may still retain the full child artifact). |
+| **`status` propagation** | If the **cook** phase reports **`fail`** or **`error`**, or the child top-level `status` is **`fail`** / **`error`**, the delegator **MUST** surface that to `/ship` so **`ship.cook_package`** halts (unless advisory demotion or user-direct-debug override per `agent-ship.md` §7.1). |
+| **`artifacts.cooked_content`** | From child envelope; feeds post-cook guards and downstream package dispatch. |
+
+On success (`pass` / `dry_run` per child rules), **`phases[0].trace_dir`**, **`duration_s`**, and **`exit_code`** carry cook telemetry. On failure, the harness SHOULD attach **`unreal_tail_log`** output (last **20** lines per **`ship.cook_package`** contract in `ship-guards.md`).
 
 ---
 
-## 4. Engine adapters (stubs)
+## 4. Engine adapters (delegation)
 
-Each adapter names the **future** CLI or tool wrapper the harness will invoke. Until M8, this subagent records **intent**, captures **no** vendor secrets, and returns **stub envelopes** when automation is absent.
+**Unreal (Tier 1):** argv composition, MCP dispatch, and per-phase envelopes are defined in **`agent-cook-package-game.md`** §4–§6 and **`cook-package-commands.md`**. This file does **not** duplicate UAT spelling.
 
-### 4.1 Unreal Engine (Tier 1)
-
-**Illustrative UAT invocation (documentation only — not executed in M3-P2):**
-
-```text
-RunUAT.sh BuildCookRun -project=<AbsoluteUProject> -cook -stage -package -platform=Win64 -clientconfig=Shipping
-```
-
-- Real multi-platform cooks iterate `-platform=` or use UAT multi-target flags per engine documentation.  
-- **Proposed orchestration tool:** `ue_uat_cook` (proposed, **M8-P1**) — wraps `RunUAT.sh` / `RunUAT.bat`, normalizes log streaming, and maps exit codes.  
-- **Status: stub (full impl M8-P1)** — first-class Unreal cook automation.
-
-### 4.2 Unity (Tier 2)
-
-**Illustrative stub:**
-
-```text
-Unity -batchmode -projectPath <APP_REPO> -executeMethod Build.Run -buildTarget <TargetName>
-```
-
-- Exact `executeMethod`, Scriptable Build Pipeline entry, and platform mapping are **post-M8**.  
-- **Proposed tool:** `unity_batch_cook` (proposed, post-M8).  
-- **Status: stub (full impl post-M8)** — Unity Tier 2; deferred after Unreal path.
-
-### 4.3 Godot (Tier 3)
-
-**Illustrative stub:**
-
-```text
-godot --headless --export-release "<preset>" <output>
-```
-
-- Preset names and export maps come from project configuration; automation hooks **post-M8**.  
-- **Proposed tool:** `godot_export_cook` (proposed, post-M8).  
-- **Status: stub (full impl post-M8)** — Godot Tier 3.
+**Unity / Godot:** Out of scope for **`agent-cook-package-game`** until future milestones; `/ship` does not invoke this delegator for those engines until a child agent exists.
 
 ---
 
@@ -132,47 +102,49 @@ for operator forensics, mirroring `agent-ship.md` §6.4. This subagent **documen
 
 ## 7. Protocol
 
-Execute in order; do not skip steps.
-
-1. **Validate inputs** — Confirm `project` resolves in the workspace manifest, `APP_REPO` exists, `engine` matches manifest/engine association where applicable, and `target_platforms` is non-empty. On validation failure, emit **`status: "fail"`** with actionable `notes` (no subprocess launch).  
-2. **Launch cook CLI** — Select §4 adapter command family; invoke via future `ue_uat_cook` (proposed, **M8-P1**) or documented stub.  
-3. **Stream log to disk** — Append stdout/stderr to **`.../cook/engine.log`** with rotation policy **TBD M8-P1**.  
-4. **Wait for exit** — Respect `max_duration_s`; record `duration_ms`.  
-5. **Collect cooked paths** — Enumerate per-platform output directories; normalize to hub-relative paths where possible.  
-6. **Emit envelope** — Write **`.../cook/envelope.json`** per §8; return the path to the harness.
+1. **Read parent context** — Confirm `agent-ship.md` §3.2 (cook phase) and active **`ship.cook_package`** policy in `.cuebert/config/cook-package-game.yaml` + `ship-guards.yaml`.  
+2. **Build child request** — Construct **`agent-cook-package-game`** §2 JSON with **`skip_package: true`**, **`caller: "agent-ship-cook"`**, and ship-plan fields (`project_path`, `target_platform`, `target_store`, `build_config`, optional `maps` / `timeout_s`).  
+3. **Dispatch child** — Invoke **`agent-cook-package-game`** (Task envelope points readers to **`agent-cook-package-game.md`**).  
+4. **Evaluate cook outcome** — If the **cook** phase `status` is **`fail`** or **`error`**, or top-level child `status` is **`fail`** / **`error`**, return that failure to `/ship` **without** synthesizing a legacy §8 stub.  
+5. **Filter and return** — Return the child envelope; if the harness requests a cook-only summary, **`phases`** contains **only** the **`cook`** entry.  
+6. **Trace** — Persist under **`.cuebert/traces/ship/<timestamp>/cook/`** (`envelope.json`, logs) per §5; align paths with the child `trace_dir` when present.
 
 ---
 
 ## 8. Output envelope (JSON shape)
 
-The cook envelope is consumed by **`agent-ship-cert`** (`cooked_paths`) and post-cook **Ship Guards** (`agent-ship.md` §4).
+**Normative shape:** **`agent-cook-package-game.md`** §3. Illustrative **cook-only** return (filtered `phases`):
 
 ```json
 {
-  "status": "ok",
-  "exit_code": 0,
-  "duration_ms": 1234567,
-  "platforms_cooked": ["Win64", "Mac"],
-  "cooked_paths": {
-    "Win64": ".cuebert/traces/ship/2026-04-20T120000Z/cooked/Win64/",
-    "Mac": ".cuebert/traces/ship/2026-04-20T120000Z/cooked/Mac/"
+  "status": "pass",
+  "mode": "dry_run",
+  "project_path": "/path/to/HelloLevel.uproject",
+  "target_platform": "Win64",
+  "target_store": "internal",
+  "build_config": "Shipping",
+  "phases": [
+    {
+      "name": "cook",
+      "status": "pass",
+      "duration_s": 120.5,
+      "exit_code": 0,
+      "trace_dir": ".cuebert/traces/build/example-cook-2026-04-20T15-30-00Z/",
+      "detail": "Cooked 42 maps, 238 assets"
+    }
+  ],
+  "artifacts": {
+    "cooked_content": "/path/to/HelloLevel/Saved/Cooked/Win64/",
+    "staged_build": null,
+    "package_size_mb": null,
+    "manifest_path": null
   },
-  "content_size_bytes": {
-    "Win64": 1234567890,
-    "Mac": 987654321
-  },
-  "log_tail_path": ".cuebert/traces/ship/2026-04-20T120000Z/cook/engine.log",
-  "notes": "Optional human context; include engine version echo when known."
+  "error": null,
+  "memory_id": null
 }
 ```
 
-**`status` enum:** `ok` \| `fail` \| `timeout`
-
-**Field notes:**
-
-- **`cooked_paths`** values are directory roots; files within are implementation-defined per engine.  
-- **`content_size_bytes`:** total bytes under each cooked root when recursive sizing is available; else **stub zeros** with `notes` until M8.  
-- **`exit_code`:** mirror OS process exit; for timeouts after kill, document convention in harness (**M8-P1**).
+**Legacy M3-P2 stub** (`status: ok`, `cooked_paths` map) is **deprecated** for Unreal once **`agent-cook-package-game`** dispatch is active; post-cook guards SHOULD read **`artifacts.cooked_content`** and **`phases[]`** from this envelope.
 
 ---
 
@@ -181,7 +153,7 @@ The cook envelope is consumed by **`agent-ship-cert`** (`cooked_paths`) and post
 | Non-goal | Redirect |
 |----------|----------|
 | **Packaging** (zip, installer, platform-native) | `agent-ship-package.md` |
-| **Certification / compliance scans** | `agent-ship-cert.md` |
+| **Certification / compliance scans** | `agent-ship-cert.md` (runs **after** package in `/ship`; not invoked from cook) |
 | **Upload to distribution channels** | `agent-ship-upload.md` |
 | **`git commit` / `git push` / branch switches** | Operator or CI; not cook subagent |
 | **Pre-cook Ship Guards** | Harness-owned before dispatch (`agent-ship.md` §4.1) |
@@ -256,9 +228,9 @@ Parent `agent-ship.md` §3.9 defines a **Cook** slim sketch. This file is the **
 | `agent-ship.md` | Phase chain, Ship Guards, ship plan schema, memory policy |
 | `play-preview-guards.md` | Evidence shape **pattern** for structured findings (informative only here) |
 | `control-plane-paths.md` | Hub traces, zero-footprint app repos |
-| `agent-ship-cert.md` | Downstream consumer of `cooked_paths` |
-| `agent-cook-package-game.md` | **M8-P1** cook/stage/package orchestration spec (**M8-P3** dispatch) |
-| `cook-package-commands.md` | UAT **`BuildCookRun`** argv catalog |
+| `agent-cook-package-game.md` | Child agent — argv, MCP dispatch, full envelope |
+| `cook-package-commands.md` | UAT argv catalog |
+| `agent-ship-package.md` | Sibling delegator for stage + package |
 
 ---
 
@@ -288,4 +260,4 @@ When engine automation is missing (`agent-ship.md` §3.7), the harness may skip 
 
 ---
 
-Status: M3-P2 (protocol stub). Unreal full impl: M8-P1. Unity/Godot: post-M8.
+Status: M8-P3 (delegator to **`agent-cook-package-game`**). Unity/Godot: post-M8.

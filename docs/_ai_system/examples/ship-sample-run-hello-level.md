@@ -46,8 +46,9 @@ Produce **offline zips** for **Win64** and **Mac**, **shipping** flavor, **versi
 - Pre-cook **`verdict: pass`** with `guard.project.ship_metadata` **passing** against §8 schema.  
 - Cook envelope shows **`exit_code: 0`**, both platforms cooked, **durations within** `global.cook_max_duration_s`.  
 - Post-cook size guard within **warn** threshold (no escalation to fail).  
-- Cert envelope shows **`verdict: warn`** with **zero** `fail` findings; post-cert **`guard.cert.severity_floor`** allows up to **10** warns.  
-- Package envelope lists **two** zips with **SHA-256** digests and **`deterministic: true`**.  
+- **`ship.cook_package`** passes **cook**, **stage**, and **package** phases (M8-P3).  
+- Package artifacts exist for post-package **`guard.package.*`** checks (legacy zip manifest or **`agent-cook-package-game`** `artifacts`).  
+- **`agent-cert-game`** may return **`status: warn`** with **INFO/WARN** findings only; **`ship.cert_advisory`** surfaces them **without** halting.  
 - Post-package guards **pass**.  
 - Upload phase **skipped** with explicit **`skip`** in `upload/envelope.json`.  
 - Attest rollup **`verdict: pass`** at trace root; memory **`milestone_commit`** simulated.
@@ -80,14 +81,13 @@ From `.cuebert/config/ship-guards.yaml` / `ship-guards.md` §2:
 The ordered traversal matches **`ship-guards.md` §7** (and `agent-ship.md` §7):
 
 1. **PRE-COOK GUARDS** — load YAML + overrides; stable sort by `guard_id`; on **`fail`**, halt before cook. Includes **`ship.prod_readiness`** (`agent-prod-readiness-game`) per **M7-P3**.  
-2. **COOK** — dispatch `agent-ship-cook`.  
-3. **POST-COOK GUARDS** — consume cook envelope + disk; halt before cert on **`fail`**. Includes **`ship.qa_resilience`** (`agent-qa-resilience-game`, `session_kind: build`) per **M7-P3**.  
-4. **CERT** — dispatch `agent-ship-cert` when `cert_profile != none`.  
-5. **POST-CERT GUARDS** — severity floor + checklist + report emission.  
-6. **PACKAGE** — dispatch `agent-ship-package`.  
-7. **POST-PACKAGE GUARDS** — exists / checksum / manifest.  
-8. **UPLOAD** — optional; skipped here (`upload_channel: none`).  
-9. **ATTEST** — always; rollup `envelope.json` + memory hooks (**`milestone_commit`** on this happy path).
+2. **COOK (M8-P3)** — dispatch **`agent-ship-cook` → `agent-cook-package-game`** (`skip_package: true`); **`ship.cook_package`** evaluates **cook** phase.  
+3. **POST-COOK GUARDS** — consume cook envelope + disk; halt before package on **`fail`**. Includes **`ship.qa_resilience`** (`agent-qa-resilience-game`, `session_kind: build`) per **M7-P3**.  
+4. **PACKAGE (M8-P3)** — dispatch **`agent-ship-package` → `agent-cook-package-game`** (`skip_cook: true`); **`ship.cook_package`** evaluates **stage** + **package**.  
+5. **POST-PACKAGE GUARDS** — exists / checksum / manifest.  
+6. **CERT (M8-P3)** — dispatch **`agent-ship-cert` → `agent-cert-game`**; **`ship.cert_advisory`** surfaces findings; **never** halts.  
+7. **UPLOAD** — optional; skipped here (`upload_channel: none`).  
+8. **ATTEST** — always; rollup `envelope.json` + memory hooks (**`milestone_commit`** on this happy path).
 
 Each subsection lists **step**, **actor**, **conceptual inputs**, **representative JSON**, and **verdict / next**.
 
@@ -181,41 +181,51 @@ SHIP_METADATA_PRESENT=true
 
 ---
 
-### 3.2 Step — `agent-ship-cook`
+### 3.2 Phase: cook (M8-P3)
 
-**Actor:** `agent-ship-cook` (future `generalPurpose` Task).  
-**Sample input (conceptual):**
+**Dispatch:** `agent-ship-cook` → `agent-cook-package-game`  
+**Actor:** `generalPurpose` Task reading `agent-ship-cook.md`.
 
-```text
-APP_REPO=/abs/path/hello-level
-COOK_FLAVOR=shipping
-TARGET_PLATFORMS=Win64,Mac
-OUTPUT_DIR=.cuebert/traces/ship/example-2026-04-20T12-30-00Z/cooked/
-```
-
-**Sample output (`cook/envelope.json`)** — shape per **`agent-ship-cook.md` §8**:
+**Sample request** (hello-level, Win64 Shipping, internal store):
 
 ```json
 {
-  "status": "ok",
-  "exit_code": 0,
-  "duration_ms": 900000,
-  "platforms_cooked": ["Win64", "Mac"],
-  "cooked_paths": {
-    "Win64": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cooked/Win64/",
-    "Mac": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cooked/Mac/"
-  },
-  "content_size_bytes": {
-    "Win64": 3221225472,
-    "Mac": 3000000000
-  },
-  "log_tail_path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cook/engine.log",
-  "notes": "Hypothetical UAT cook success for hello-level 0.1.0 build 42; both platforms within 5GB warn budget."
+  "project_path": "/path/to/HelloLevel.uproject",
+  "target_platform": "Win64",
+  "target_store": "internal",
+  "build_config": "Shipping",
+  "skip_package": true,
+  "caller": "agent-ship-cook"
 }
 ```
 
-**Interpretation:** **15 minutes** wall time (`900000` ms), **`exit_code: 0`**, sizes **under** `cook_default_budget_bytes` (`5368709120`).  
-**Phase verdict:** `pass`.  
+**Sample response (pass):**
+
+```json
+{
+  "status": "pass",
+  "mode": "dry_run",
+  "project_path": "/path/to/HelloLevel.uproject",
+  "phases": [
+    {
+      "name": "cook",
+      "status": "pass",
+      "duration_s": 120.5,
+      "exit_code": 0,
+      "trace_dir": ".cuebert/traces/build/example-cook-2026-04-20T15-30-00Z/",
+      "detail": "Cooked 42 maps, 238 assets"
+    }
+  ],
+  "artifacts": {
+    "cooked_content": "/path/to/HelloLevel/Saved/Cooked/Win64/"
+  }
+}
+```
+
+**Guard check:** **`ship.cook_package`** phase 1 (cook) — **pass**. `/ship` continues.
+
+**Legacy stub envelope** (pre-M8-P3, multi-platform) remains illustrative in `.cuebert/traces/ship/example-2026-04-20T12-30-00Z/cook/envelope.json` for older guard narratives.
+
 **Next:** **post-cook guards**.
 
 ---
@@ -232,7 +242,7 @@ OUTPUT_DIR=.cuebert/traces/ship/example-2026-04-20T12-30-00Z/cooked/
 **Representative `guards/post_cook.json`:** see `.cuebert/traces/ship/example-2026-04-20T12-30-00Z/guards/post_cook.json` (three post-cook rows; all `info` in this doc-only pass, with cook log pointer evidence).
 
 **Phase verdict:** `pass`.  
-**Next:** **`ship.qa_resilience`** (M7-P3), then **`agent-ship-cert`**.
+**Next:** **`ship.qa_resilience`** (M7-P3), then **`agent-ship-package`** (M8-P3).
 
 ---
 
@@ -320,77 +330,48 @@ Fixture envelopes (committed): `.cuebert/traces/ship/example-2026-04-20T15-00-00
 
 ---
 
-### 3.4 Step — `agent-ship-cert`
+### 3.4 Phase: package (M8-P3)
 
-**Actor:** `agent-ship-cert`.  
-**Sample input:**
+**Dispatch:** `agent-ship-package` → `agent-cook-package-game`
 
-```text
-CERT_PROFILE=indie-light
-COOKED_PATHS_JSON={"Win64":".../cooked/Win64/","Mac":".../cooked/Mac/"}
-REPORT_PATH=.cuebert/traces/ship/example-2026-04-20T12-30-00Z/cert/report.md
-```
-
-**Sample output (`cert/envelope.json`)** — per **`agent-ship-cert.md` §7`; full JSON on disk at `.cuebert/traces/ship/example-2026-04-20T12-30-00Z/cert/envelope.json` (`verdict: warn`, two warn-level findings, zero fail).
-
-**Human report:** see committed **`cert/report.md`** in the trace fixture (two warns, **no** fails).  
-**Phase verdict:** `warn` (allowed).  
-**Next:** **post-cert guards**.
-
----
-
-### 3.5 Step — Post-cert guards
-
-**Actor:** harness guard runner (post-cert class).  
-**Highlights:**
-
-- `guard.cert.severity_floor` → **`pass`** — `max_fail_findings: 0` satisfied; `warn` count **2** **<=** `max_warn_findings: 10`.  
-- `guard.cert.report_emitted` → **`pass`** — `report.md` exists and is non-empty.  
-- `guard.cert.required_checklists` remains **spec-only** in this fixture (evaluator **M8-P2**); harness MAY fold it into post-cert once checklist coverage exists.
-
-**Phase verdict:** `pass`.  
-**Next:** **`agent-ship-package`**.
-
----
-
-### 3.6 Step — `agent-ship-package`
-
-**Actor:** `agent-ship-package`.  
-**Sample output (`package/envelope.json`)** — shape per **`agent-ship-package.md` §8** (fixture path uses **`package/`** directory per M3-P3 example tree; artifact **paths** remain hub-relative):
+**Sample request:**
 
 ```json
 {
-  "packages": [
-    {
-      "platform": "Win64",
-      "format": "zip",
-      "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/package/hello-level_0.1.0_Win64_shipping.zip",
-      "size_bytes": 2800000000,
-      "sha256": "a1b2c3d4e5f6789012345678901234567890abcd1234567890abcdef12345678",
-      "deterministic": true
-    },
-    {
-      "platform": "Mac",
-      "format": "zip",
-      "path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/package/hello-level_0.1.0_Mac_shipping.zip",
-      "size_bytes": 2650000000,
-      "sha256": "b2c3d4e5f6789012345678901234567890abcde234567890abcdef1234567890a1",
-      "deterministic": true
-    }
-  ],
-  "manifest_path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/package/manifest.json",
-  "verdict": "pass"
+  "project_path": "/path/to/HelloLevel.uproject",
+  "target_platform": "Win64",
+  "target_store": "internal",
+  "build_config": "Shipping",
+  "skip_cook": true,
+  "caller": "agent-ship-package"
 }
 ```
 
-**Note:** The **ASCII tree** in §5 lists **`package/envelope.json`** only for brevity; a real M8 run may also materialize **`manifest.json`** beside archives. This example names **`manifest_path`** for **`guard.package.manifest`** consumption.
+**Sample response (pass):**
 
-**Phase verdict:** `pass`.  
+```json
+{
+  "status": "pass",
+  "phases": [
+    {"name": "stage", "status": "pass", "duration_s": 15.2, "exit_code": 0},
+    {"name": "package", "status": "pass", "duration_s": 8.7, "exit_code": 0}
+  ],
+  "artifacts": {
+    "staged_build": "/path/to/HelloLevel/Saved/StagedBuilds/Win64-Shipping/",
+    "package_size_mb": 1843.5
+  }
+}
+```
+
+**Guard check:** **`ship.cook_package`** phases 2–3 — **pass**. `/ship` continues.
+
+**Legacy zip manifest sample** (M3 narrative): `.cuebert/traces/ship/example-2026-04-20T12-30-00Z/package/envelope.json` (`packages[]`, `verdict: pass`).
+
 **Next:** **post-package guards**.
 
 ---
 
-### 3.7 Step — Post-package guards
+### 3.5 Step — Post-package guards
 
 **Highlights:**
 
@@ -399,11 +380,63 @@ REPORT_PATH=.cuebert/traces/ship/example-2026-04-20T12-30-00Z/cert/report.md
 - `guard.package.manifest` → **`pass`**.
 
 **Phase verdict:** `pass`.  
+**Next:** **`agent-ship-cert`** (M8-P3 advisory).
+
+---
+
+### 3.6 Phase: cert (M8-P3)
+
+**Dispatch:** `agent-ship-cert` → `agent-cert-game`
+
+**Sample request:**
+
+```json
+{
+  "project_path": "/path/to/HelloLevel.uproject",
+  "build_path": "/path/to/HelloLevel/Saved/StagedBuilds/Win64-Shipping/",
+  "target_platform": "Win64",
+  "target_store": "internal",
+  "build_config": "Shipping",
+  "caller": "agent-ship-cert"
+}
+```
+
+**Sample response (warn — 2 advisory findings):**
+
+```json
+{
+  "status": "warn",
+  "mode": "dry_run",
+  "findings": [
+    {
+      "checklist_id": "legal.privacy_policy_present",
+      "category": "legal",
+      "severity": "warn",
+      "detail": "No privacy policy URL configured in DefaultGame.ini"
+    },
+    {
+      "checklist_id": "metadata.game_description_set",
+      "category": "metadata",
+      "severity": "info",
+      "detail": "GameDescription not set"
+    }
+  ],
+  "summary": {
+    "total_checklists_evaluated": 12,
+    "warn_count": 1,
+    "info_count": 1,
+    "skipped_count": 3
+  }
+}
+```
+
+**Guard check:** **`ship.cert_advisory`** — advisory findings surfaced to ship envelope (`cert_advisory: [...]`). Ship continues to **upload** phase (dry_run default).
+
 **Next:** **Upload** evaluation.
 
 ---
 
-### 3.8 Step — Upload (skipped)
+### 3.7 Step — Upload (skipped)
 
 **Actor:** harness short-circuit (no `agent-ship-upload` Task).  
 **Sample `upload/envelope.json`:**
@@ -423,7 +456,7 @@ REPORT_PATH=.cuebert/traces/ship/example-2026-04-20T12-30-00Z/cert/report.md
 
 ---
 
-### 3.9 Step — Attest + memory
+### 3.8 Step — Attest + memory
 
 **Actor:** main-chat harness.  
 **Rollup `envelope.json` (truncated):**
@@ -444,12 +477,19 @@ REPORT_PATH=.cuebert/traces/ship/example-2026-04-20T12-30-00Z/cert/report.md
     "pre_cook": "pass",
     "cook": "pass",
     "post_cook": "pass",
-    "cert": "warn",
-    "post_cert": "pass",
     "package": "pass",
     "post_package": "pass",
+    "cert": "warn",
     "upload": "skip"
   },
+  "cert_advisory": [
+    {
+      "checklist_id": "legal.privacy_policy_present",
+      "category": "legal",
+      "severity": "warn",
+      "detail": "No privacy policy URL configured in DefaultGame.ini"
+    }
+  ],
   "artifacts": {
     "trace_root": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/"
   },
@@ -626,6 +666,22 @@ Each variant assumes the same Plan intent as §2 until the failure point.
 
 ---
 
+### 4.E `ship.cook_package` cook failure (M8-P3)
+
+**Trigger:** `agent-cook-package-game` returns **`status: fail`** with **`phases[0].name == "cook"`** and **`phases[0].status == "fail"`** (for example UAT non-zero exit). **Stage** and **package** are **not** started (short-circuit).
+
+**Harness path:** Halt after **§3.2**; **post-cook**, **package**, and **cert** do not run on the success path. **Attest** still writes a rollup with `phase_verdicts.cook: fail`.
+
+**Illustrative error attachment:** last **20** lines from **`unreal_tail_log`** on `Saved/Logs/` (see `ship-guards.md` **`ship.cook_package`**).
+
+**Committed fixture:** `.cuebert/traces/ship/example-2026-04-20T16-00-00Z/cook/envelope-fail.json`.
+
+**Override walk-through:** **`caller: user-direct-debug`** with **`--override=accept-risk`** may bypass the **`ship.cook_package`** halt per `agent-ship.md` §7.1; audit **`troubleshoot_commit`** (warn) lists the bypassed failure. **`ship.cert_advisory`** cannot be overridden.
+
+**Advisory demotion:** set **`spec_only_as_info: true`** in `.cuebert/config/cook-package-game.yaml` (migration only) to treat failed phases as warnings.
+
+---
+
 ## 5. Trace artifacts on disk (ASCII tree)
 
 Committed example (text only; **no** binary zips checked in):
@@ -665,8 +721,8 @@ Hub path prefix: `.cuebert/traces/ship/`. Aligns with **`control-plane-paths.md`
 
 ## 7. Footer
 
-**Status:** M3-P3 (doc-only example). **Real executable run:** M8-P1 (cook) + M8-P2 (cert) + M8-P3 (package/upload wiring).  
-**Fixture commit path:** `.cuebert/traces/ship/example-2026-04-20T12-30-00Z/` (curated exception under `.gitignore`).
+**Status:** M3-P3 + M8-P3 narrative (doc-only). **Real executable run:** unreal-build UAT adapter + harness wiring post-spec.  
+**Fixture commit paths:** `.cuebert/traces/ship/example-2026-04-20T12-30-00Z/` (M3-P3 tree); `.cuebert/traces/ship/example-2026-04-20T16-00-00Z/` (M8-P3 cook/package/cert envelope samples).
 
 ---
 
@@ -681,3 +737,5 @@ Hub path prefix: `.cuebert/traces/ship/`. Aligns with **`control-plane-paths.md`
 - `/ship` proceeds past pre-cook.
 - **`troubleshoot_commit`** is called with severity **`warn`**, body containing the bypassed finding(s).
 - Final **`/ship`** envelope includes **`"override_applied": true`** and **`"overridden_findings": [...]`**.
+
+The same **`user-direct-debug`** + **`--override=accept-risk`** pattern applies to a **`ship.cook_package`** failure when the operator accepts pipeline risk; it does **not** apply to **`ship.cert_advisory`** (always advisory).

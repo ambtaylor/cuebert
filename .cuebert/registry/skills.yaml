@@ -125,4 +125,5 @@ skills:
 # M7-P2 agent-prod-readiness-game (spec, enforced via ship guard M7-P3).
 # M8-P1 agent-cook-package-game (spec, dispatches unreal-build MCP tools).
 # M8-P2 agent-cert-game (spec, advisory-only INFO/WARN checklist scanner).
-# Rule engines for M7 + M8-P1 + M8-P2 agents ship as proper skills in follow-up work.
+# M8-P3 wires all five agents into /ship strict + advisory gates.
+# Rule engines (M7-P1/P2 log-parsing, M8-P1/P2 config-scanning) ship in follow-up work.

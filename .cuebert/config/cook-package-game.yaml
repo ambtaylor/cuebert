@@ -49,4 +49,7 @@ scope:
   agent-play-qa:
     modes: []
 
-spec_only_as_info: true    # M8-P1: flipped to false in M8-P3
+# M8-P1: spec_only_as_info=true (advisory).
+# M8-P3: flipped to false (enforced). Set to true to temporarily restore advisory
+# mode during migration; remove this line once migration is complete.
+spec_only_as_info: false

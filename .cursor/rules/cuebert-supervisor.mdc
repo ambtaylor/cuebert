@@ -41,18 +41,19 @@ Gaming play harness (**coming in M2**). Protocol doc: `docs/_ai_system/agents/ag
 
 Gaming ship harness (**coming in M3**). Protocol doc: `docs/_ai_system/agents/agent-ship.md`; subagent stubs: `agent-ship-cook.md`, `agent-ship-cert.md`, `agent-ship-package.md`, `agent-ship-upload.md`; guards spec: `docs/_ai_system/standards/ship-guards.md`; config: `.cuebert/config/ship-guards.yaml`; template: `docs/projects/_templates/ship-plan-template.md`; worked example: `docs/_ai_system/examples/ship-sample-run-hello-level.md`. Implementation stubs land in **M3-P1..M3-P3** (this phase closes M3); full cook/cert/package land in **M8**. Until M8 is complete, respond in **main chat** only: *"Ship harness not yet executable (M8)."* Do **not** spawn a Task for `/ship` yet.
 
-  - /ship strict gates (M7-P3 enforced):
-    - pre_cook: ship.prod_readiness via agent-prod-readiness-game.
-    - post_cook: ship.qa_resilience via agent-qa-resilience-game.
+  - /ship strict gates (M7-P3 + M8-P3 enforced):
+    - pre_cook: ship.prod_readiness via agent-prod-readiness-game (REJECT gate).
+    - cook through package: ship.cook_package via agent-cook-package-game (FAIL gate).
+    - post_cook: ship.qa_resilience via agent-qa-resilience-game (REJECT for critical/error).
+    - cert: ship.cert_advisory via agent-cert-game (ADVISORY only, never blocks).
   - Override: --override=accept-risk, user-direct-debug only. Non-user overrides
-    treated as ship.override_unauthorized scope violation.
-  - Migration escape hatch: spec_only_as_info: true in the agent's config.yaml
-    demotes findings from reject to advisory for transitional projects.
-  - /ship cert phase (M8-P2 spec): dispatches agent-cert-game which returns
-    ADVISORY findings (INFO/WARN only, never blocks). Cert-game covers Steam /
-    Epic / GOG / itch.io checklists. Xbox / PlayStation / Nintendo deliberately
-    omitted (require SDKs under NDA).
-  - M8-P3 will replace M3-P2 ship-cert stub with real dispatch.
+    treated as ship.override_unauthorized scope violation. ship.cert_advisory
+    cannot be overridden (advisory_always: true).
+  - Migration escape: spec_only_as_info: true in config demotes findings to
+    advisory. ship.cert_advisory is permanently advisory; escape hatch N/A.
+  - /ship cert phase: agent-cert-game returns ADVISORY findings (INFO/WARN only).
+    Cert-game covers Steam / Epic / GOG / itch.io checklists. Xbox / PlayStation /
+    Nintendo deliberately omitted (require SDKs under NDA).
 
 When M3 lands, `/ship` follows the same **main-chat protocol** pattern as `/d` — not a named `subagent_type`.
 

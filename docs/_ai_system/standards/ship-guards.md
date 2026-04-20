@@ -124,6 +124,28 @@ These gates extend the `/ship` harness with **agent-dispatched** checks keyed un
 - **Advisory mode (transitional):** when `.cuebert/config/qa-resilience-game.yaml` has **`spec_only_as_info: true`**, all findings **demote to `info`** and **do not** block `/ship`. **Transitional only**; run-level warning as below.
 - **Cross-refs:** `docs/_ai_system/agents/agent-qa-resilience-game.md`, `docs/_ai_system/standards/qa-resilience-game-rules.md`.
 
+#### Guard: `ship.cook_package`
+
+- **Phase boundary:** spans `cook` through `package` (multi-phase guard).
+- **Severity:** fail-eligible (not reject-eligible; this is a pipeline-failure gate, not a policy-reject gate).
+- **Trigger:** `agent-cook-package-game` returns `status: fail` OR `status: error` for any of its 3 internal phases.
+- **Envelope field consulted:** `phases[*].status`.
+- **Default action:** halt ship with structured error envelope carrying the failed phase + last 20 log lines (via `unreal_tail_log`).
+- **Override:** `--override=accept-risk` user-direct-debug only (same mechanism as M7-P3 gates).
+- **Advisory mode:** if `.cuebert/config/cook-package-game.yaml` has `spec_only_as_info: true`, failed phases become warnings and cook continues. Not recommended except during migration.
+- **Cross-refs:** `docs/_ai_system/agents/agent-cook-package-game.md`, `docs/_ai_system/standards/cook-package-commands.md`.
+
+#### Guard: `ship.cert_advisory`
+
+- **Phase boundary:** `cert`.
+- **Severity:** **advisory only**. Never fails ship.
+- **Trigger:** `agent-cert-game` returns `status: warn` or `status: info`.
+- **Envelope field consulted:** `findings[*].severity`.
+- **Default action:** surface findings in ship envelope as `cert_advisory: [...]`. Log WARN findings to memory (severity: info per M8-P2 contract).
+- **Override:** N/A — advisory guard has no blocking behavior to override.
+- **Advisory mode:** not configurable (always advisory per `advisory_always: true`).
+- **Cross-refs:** `docs/_ai_system/agents/agent-cert-game.md`, `docs/_ai_system/standards/cert-game-checklists.md`.
+
 ---
 
 ## 3. Severity semantics
@@ -212,8 +234,10 @@ The hub file **`.cuebert/config/ship-guards.yaml`** MAY list **`ship.prod_readin
 |----------|------------------|----------------------------|---------------|
 | `ship.prod_readiness` | `pre_cook` | any `findings[].severity == reject` | `prod-readiness-game.yaml` → `spec_only_as_info: true` (REJECT → warn, non-blocking) |
 | `ship.qa_resilience` | `post_cook` | any `findings[].severity in {critical, error}` | `qa-resilience-game.yaml` → `spec_only_as_info: true` (all findings → info, non-blocking) |
+| `ship.cook_package` | `cook_through_package` | any `phases[*].status` in `{fail, error}` from `agent-cook-package-game` | `cook-package-game.yaml` → `spec_only_as_info: true` (failed phases demote to warnings, non-blocking; migration only) |
+| `ship.cert_advisory` | `cert` | never blocks | `cert-game.yaml` → `advisory_always: true` (always advisory; findings surfaced only) |
 
-**Override:** documented in `docs/_ai_system/agents/agent-ship.md` (M7-P3). **`caller != user-direct-debug`** MUST NOT honor `--override=accept-risk`; attempted misuse is a **scope violation** logged to `troubleshoot_commit` (**`ship.override_unauthorized`**).
+**Override:** documented in `docs/_ai_system/agents/agent-ship.md` (M7-P3). **`caller != user-direct-debug`** MUST NOT honor `--override=accept-risk`; attempted misuse is a **scope violation** logged to `troubleshoot_commit` (**`ship.override_unauthorized`**). **`ship.cert_advisory`** has no override path.
 
 ---
 
@@ -287,9 +311,9 @@ Where `<timestamp>` is UTC-sortable (see `docs/_ai_system/standards/control-plan
 **Dispatch rules:**
 
 - **Pre-cook fail:** **Cook never runs**; session moves to **Attest** (failure).  
-- **Post-cook fail:** **Cert never runs** (and **Package** never runs).  
-- **Post-cert fail:** **Package never runs**.  
-- **Post-package fail:** **Upload never runs**; session **BLOCKED** for upload per parent §3.7.
+- **Post-cook fail (including ship.qa_resilience):** **Package never runs** (and downstream cert/upload do not proceed on a successful ship path).  
+- **ship.cook_package fail:** **Halt** before the next `/ship` phase that still requires a passing cook/package chain; **Attest** records the failed phase.  
+- **Post-package fail:** **Upload never runs**; session **BLOCKED** for upload per parent §3.7. **`ship.cert_advisory`** may still run; it never blocks.
 
 **Hub-only traces:** Application repositories remain **zero-footprint** for cuebert control-plane trees per `control-plane-paths.md` — ship traces live in the **hub** checkout.
 
@@ -300,35 +324,34 @@ Where `<timestamp>` is UTC-sortable (see `docs/_ai_system/standards/control-plan
 Pseudo-flow for harness ordering (compare `agent-ship.md` §7 — this section aligns numbering for guard-centric readers):
 
 ```text
-1. PRE-COOK GUARDS
+1. PRE-COOK GUARDS + ship.prod_readiness (M7-P3)
    a. Load .cuebert/config/ship-guards.yaml + merge ship_guards_overrides + manifest overrides (M3-P3).
    b. Run enabled pre-cook guards in stable sorted order by guard_id.
-   c. If any resolved severity == fail -> HALT; no cook dispatch; go to ATTEST (failure).
-   d. Else continue.
+   c. Dispatch agent-prod-readiness-game when ship.prod_readiness is on; halt on REJECT unless user-direct-debug override (M7-P3).
+   d. If any resolved severity == fail -> HALT; no cook dispatch; go to ATTEST (failure).
+   e. Else continue.
 
-2. DISPATCH agent-ship-cook
-   a. Cook subagent writes cook/envelope.json + cook logs under the trace tree.
+2. DISPATCH agent-ship-cook -> agent-cook-package-game (cook only; ship.cook_package phase 1)
+   a. Evaluate ship.cook_package on returned phases; halt on fail/error unless advisory demotion (cook-package-game.yaml).
 
-3. POST-COOK GUARDS
-   a. If any fail -> HALT; no cert dispatch; ATTEST (failure).
+3. POST-COOK GUARDS + ship.qa_resilience (M7-P3)
+   a. If any fail -> HALT; no package dispatch; ATTEST (failure).
    b. Else continue.
 
-4. DISPATCH agent-ship-cert (skip when cert_profile:none; still emit post-cert info policy per parent §7)
-   a. When skipped, severity_floor checks are N/A (info findings only).
+4. DISPATCH agent-ship-package -> agent-cook-package-game (stage + package; ship.cook_package phases 2-3)
+   a. Evaluate ship.cook_package on stage/package; halt on fail/error unless advisory demotion.
 
-5. POST-CERT GUARDS
-   a. If any fail -> HALT; no package dispatch; ATTEST (failure).
+5. POST-PACKAGE GUARDS
+   a. If any fail -> HALT; cert may still run for diagnostics per harness policy; upload BLOCKED; ATTEST (failure or partial).
 
-6. DISPATCH agent-ship-package
+6. DISPATCH agent-ship-cert -> agent-cert-game (ship.cert_advisory; never blocks)
+   a. Surface findings to ship envelope; log WARN to memory at info severity (M8-P2 contract).
 
-7. POST-PACKAGE GUARDS
-   a. If any fail -> HALT; no upload; envelope marks upload as BLOCKED; ATTEST (failure).
-
-8. OPTIONAL agent-ship-upload
-   a. Only if all guards pass AND upload_channel != none AND dry_run explicitly false (or harness-equivalent explicit opt-in per agent-ship-upload.md §6 defaults).
+7. OPTIONAL agent-ship-upload
+   a. Only if all blocking guards pass AND upload_channel != none AND dry_run explicitly false (or harness-equivalent explicit opt-in per agent-ship-upload.md §6 defaults).
    b. Otherwise skip upload; upload/envelope.json SHOULD record skip/dry_run.
 
-9. ATTEST (always)
+8. ATTEST (always)
    a. Write envelope.json with full phase story + checksums + version metadata.
    b. Memory: milestone_commit on pass; troubleshoot_commit on fail (CUEBERT_MEMORY_MODE=text compatible per memory-toolkit).
 ```
@@ -412,6 +435,13 @@ Set spec_only_as_info: false in .cuebert/config/<config>.yaml to enforce.
 ```
 
 Replace `<guard_name>` with `ship.prod_readiness` or `ship.qa_resilience`, and `<config>.yaml` with `prod-readiness-game.yaml` or `qa-resilience-game.yaml` respectively.
+
+### M8-P3 enforcement status
+
+- `ship.cook_package`: ENFORCED by default. Flip `.cuebert/config/cook-package-game.yaml`
+  `spec_only_as_info: true` for transitional advisory mode.
+- `ship.cert_advisory`: ALWAYS ADVISORY. Per cert-game's `advisory_always: true`
+  contract, this guard cannot be configured to block.
 
 ---
 

@@ -6,16 +6,32 @@
 
 ---
 
-## Execution (M8-P2 spec, M8-P3 wiring)
+## M8-P3 dispatch protocol
 
-Starting M8-P3, this agent delegates cert-checklist evaluation to
-`agent-cert-game` (spec M8-P2). The cert-game agent returns advisory findings
-(INFO/WARN only, never REJECT). This agent then formats the findings for the
-ship envelope and, if all checklists are advisory-passing, marks the ship
-phase as cert-clear.
+**Purpose:** Dispatch **`agent-cert-game`** (M8-P2 spec) and attach results to the `/ship` envelope. In the aggregate ship trace, annotate this step as **`phase: cert`**. This role is the **only** supported checklist path for M8 storefront themes (Steam / Epic / GOG / itch.io / internal); legacy profile stubs in §4 remain **documentation** for operator mapping.
 
-Until M8-P3 wiring lands, the M3-P2 stub remains in place and no cert checks
-run.
+**Inputs** (harness → child, subset of **`agent-cert-game.md`** §2):
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| **`project_path`** | Yes | Absolute `.uproject` path. |
+| **`build_path`** | Yes | Staged or packaged build root from **`agent-cook-package-game`** `artifacts` (for example `staged_build`). |
+| **`target_platform`** | Yes | Platform token. |
+| **`target_store`** | Yes | Store token. |
+| **`build_config`** | Yes | `Shipping` \| `Test` \| `Development`. |
+| **`caller`** | Yes | **`agent-ship-cert`**. |
+
+Optional **`skip_checklists`** per child rules.
+
+**Outputs:** Return the **`agent-cert-game`** §3 envelope **unchanged** (status, mode, findings, summary). The ship harness **copies** `findings[]` into **`cert_advisory`** on the rollup envelope for supervisor-visible summaries.
+
+**Behavior on findings:**
+
+- **WARN** — Surface in ship envelope; **do not** halt `/ship`. Log to memory at **info** severity (M8-P2 contract; not `severity: warn` in memory).  
+- **INFO** — Surface; **do not** halt.  
+- **No findings** — Treat as **pass** for advisory purposes; top-level child `status` may be **`pass`**.
+
+**Non-goals:** Never **block** ship on cert findings; **no** REJECT severity; **no** official platform cert submission; **no** cook/package/UAT from this role.
 
 See: [`agent-cert-game.md`](./agent-cert-game.md),
 [`cert-game-checklists.md`](../standards/cert-game-checklists.md).
@@ -287,7 +303,7 @@ Operators supply **external** checklist ids; the harness passes **`required_chec
 
 ## 22. Verdict → Package gating
 
-`agent-ship-package.md` requires **`verdict != fail`** before bundling. **`warn`** packaging policy is **harness-level** (**M3-P3**); default recommendation: **allow** with explicit operator acknowledgement flag (future).
+**M8-P3 order:** **`agent-ship-package`** runs **before** **`agent-ship-cert`**. Cert **`verdict`** / findings **do not** gate packaging. Legacy **`guard.cert.*`** rows (§13) apply only when a harness still couples cert reports to post-cert **blocking** policy; **`agent-cert-game`** findings remain **advisory** under **`advisory_always: true`**.
 
 ---
 

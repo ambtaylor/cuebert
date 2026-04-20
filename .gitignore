@@ -51,8 +51,9 @@ Thumbs.db
 .cuebert/traces/ship/*
 !.cuebert/traces/ship/example-*/
 !.cuebert/traces/ship/example-*/**
-# Ship traces: example-2026-04-20T12-30-00Z (M3-P3) and example-2026-04-20T15-00-00Z (M7-P3 gate
-# fixtures) are tracked under the un-ignore rules above.
+# Ship traces: example-2026-04-20T12-30-00Z (M3-P3), example-2026-04-20T15-00-00Z (M7-P3 gate
+# fixtures), and example-2026-04-20T16-00-00Z (M8-P3 cook/package/cert samples) are tracked
+# under the un-ignore rules above (`example-*` / `example-*/**`).
 # Asset sample trace (M4-P4 worked example) — keep in git
 !.cuebert/traces/asset/
 .cuebert/traces/asset/*

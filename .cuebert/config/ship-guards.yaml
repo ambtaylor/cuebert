@@ -106,6 +106,29 @@ guards:
       Post-cook resilience scan of the cook log + stage artifacts. Blocks /ship
       on any critical or error finding.
 
+  # M8-P3 guards
+  ship.cook_package:
+    phase_boundary: cook_through_package
+    status: on
+    default_severity: fail
+    advisory_mode_source: .cuebert/config/cook-package-game.yaml
+    dispatches: agent-cook-package-game
+    override_via: --override=accept-risk (user-direct-debug only)
+    description: >
+      Multi-phase guard spanning cook, stage, and package. Halts ship on any
+      phase failure.
+
+  ship.cert_advisory:
+    phase_boundary: cert
+    status: on
+    default_severity: advisory
+    advisory_mode_source: .cuebert/config/cert-game.yaml
+    dispatches: agent-cert-game
+    override_via: n/a (never blocks)
+    description: >
+      Post-package cert-checklist advisory scan. Surfaces findings but never
+      halts ship.
+
 global:
   # Hard wall-clock budget for cook subprocess family (seconds).
   cook_max_duration_s: 1800
