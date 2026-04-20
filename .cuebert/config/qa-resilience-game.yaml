@@ -1,0 +1,76 @@
+# cuebert qa-resilience-game default configuration (M7-P1)
+# Copy into .cuebert/config/qa-resilience-game.yaml in each project; the agent
+# merges project config over these defaults.
+
+version: 1
+
+thresholds:
+  # Single-frame hitch budget (ms). Frames above this count as a "hitch" for
+  # rate and per-frame rules.
+  frame_hitch_ms: 50
+  # Sustained hitch density (count per rolling minute of log time).
+  max_hitches_per_minute: 6
+  # MB/min slope across sampled memory lines (see standards doc for line form).
+  memory_growth_mb_per_minute: 20
+  # Allowed fatal crash lines before top-level fail; default 0 = any fatal fails.
+  crash_count_tolerance: 0
+  # Streaming flush duration budget (ms) parsed from LogStreaming warnings.
+  streaming_stall_ms: 500
+  # Maximum Ensure lines tolerated per scan window before warn/error escalation.
+  max_ensure_count: 3
+  # NetPing RTT budget (ms). Reserved — network.latency_spike is off in M7-P1.
+  latency_spike_ms: 200
+  # Seconds without heartbeat progress (when heartbeat lines exist) — see
+  # resilience.deadlock_suspect in qa-resilience-game-rules.md.
+  heartbeat_absence_s: 30
+
+# Per-rule overrides. Set status to "off" to disable a rule.
+rules:
+  hitch.frame_time_exceeded:
+    status: on
+    severity: warn
+  hitch.rate_exceeded:
+    status: on
+    severity: error
+  memory.growth_rate:
+    status: on
+    severity: warn
+  memory.leak_signature:
+    status: on
+    severity: error
+  crash.fatal_signal:
+    status: on
+    severity: critical
+  crash.ensure_fired:
+    status: on
+    severity: warn
+  streaming.stall:
+    status: on
+    severity: warn
+  asset.missing:
+    status: on
+    severity: error
+  network.latency_spike:
+    status: off
+    severity: warn
+  resilience.deadlock_suspect:
+    status: on
+    severity: critical
+
+# Dispatcher allowlist (mirrors agent spec §6 scope matrix).
+# Enforced in M7-P3.
+scope:
+  preview:
+    - agent-play-qa
+    - user-direct-debug
+  gauntlet:
+    - agent-play-qa
+    - user-direct-debug
+  build:
+    - agent-ship
+    - agent-ship-cook
+    - user-direct-debug
+
+# M7-P1: rules not yet enforced in automation; harnesses may surface all
+# findings as informational until M7-P3 parsers + gates land.
+spec_only_as_info: true

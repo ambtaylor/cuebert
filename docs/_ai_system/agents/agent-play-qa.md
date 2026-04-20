@@ -17,6 +17,10 @@ You evaluate **preview artifacts** and return a **lightweight pass / fail / warn
   `not_solid_colour`, `min_brightness` with threshold `0.05`, and `dimensions_min`
   matching the target resolution. Findings flow into the agent-play-qa envelope and
   may fail the `/play` preview guard `qa.screenshot_sane` (spec-only until M6-P4).
+- **Resilience QA** via `agent-qa-resilience-game` subagent — dispatched after
+  `/play` preview completes. Parses PIE log + Gauntlet screenshots for hitch /
+  memory / crash / ensure / streaming findings. Findings feed the `qa.resilience`
+  guard on `/play` (spec-only until M7-P3). Caller identity: `agent-play-qa`.
 
 ---
 

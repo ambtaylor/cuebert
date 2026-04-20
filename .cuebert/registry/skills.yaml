@@ -119,3 +119,7 @@ skills:
         description: Commit a troubleshooting session (symptoms, root cause, resolution, tags).
     skill_path: .cursor/skills/memory-toolkit/SKILL.md
     status: active
+
+# Agents are tracked in docs/_ai_system/agents/*.md, not here.
+# M7-P1 introduces agent-qa-resilience-game (spec only, no MCP tools).
+# Once M7-P3 adds log-parsing skill support, it will be listed here as a proper skill.
