@@ -256,7 +256,7 @@ MEMORY
 
 `/asset` consumes a **PLAN** artifact declaring **intent** on top of the manifest’s **inventory** (same philosophical split as **`/ship`** requiring a ship plan, not just a raw engine).
 
-**Authoritative template path (stub):** **`docs/projects/_templates/asset-plan-template.yaml`** — **real template lands M4-P4**.
+**Authoritative plan template:** [`docs/projects/_templates/asset-plan-template.md`](../projects/_templates/asset-plan-template.md) (**M4-P4**). YAML manifest companion: [`asset-manifest-template.yaml`](../projects/_templates/asset-manifest-template.yaml).
 
 **Normative example:**
 

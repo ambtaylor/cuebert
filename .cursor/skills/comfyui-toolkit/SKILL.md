@@ -23,7 +23,7 @@ M4-P1; graphs land under `workflows/` starting in **M4-P4**, while this phase
 delivers a **dry-run-first** client so servers boot without a local ComfyUI
 process.
 
-Integration with the dedicated **asset agent** (`docs/_ai_system/agents/agent-asset-gen.md`, not yet ported in M4-P3) and **end-to-end generation with real prompts** (M4-P4) are **out of scope** for this milestone. What you get now is a stable **tool surface**, trace-path conventions, vault-aware URL resolution, and simulated envelopes when no server is reachable.
+Integration with the dedicated **`/asset` harness** (coordinator [`docs/_ai_system/agents/agent-asset.md`](../../../docs/_ai_system/agents/agent-asset.md); subagents [`agent-asset-plan.md`](../../../docs/_ai_system/agents/agent-asset-plan.md), [`agent-asset-generate.md`](../../../docs/_ai_system/agents/agent-asset-generate.md), [`agent-asset-place.md`](../../../docs/_ai_system/agents/agent-asset-place.md)) and **end-to-end generation with real prompts** when **`CUEBERT_COMFYUI_MODE=live`** are **partially specified** in M4-P3–P4 docs; **live hub wiring** remains operator-dependent. What you get now is a stable **tool surface**, trace-path conventions, vault-aware URL resolution, and simulated envelopes when no server is reachable.
 
 ## When to use this skill
 
@@ -105,7 +105,8 @@ requires traceability.
 - `reference.md` — per-tool contracts, failure modes, env vars, security notes.
 - `docs/_ai_system/standards/vault-standard.md` — vault resolution for `comfyui.base_url`.
 - `docs/_ai_system/standards/control-plane-paths.md` — hub vs project plan paths (trace layout context).
-- `docs/_ai_system/agents/agent-asset-gen.md` — asset agent protocol (**M4-P3**, not yet ported).
+- `docs/_ai_system/agents/agent-asset.md` — `/asset` harness coordinator (**M4-P3** spec; **M4-P4** sample trace).
+- `docs/_ai_system/agents/agent-asset-plan.md`, `agent-asset-generate.md`, `agent-asset-place.md` — plan / generate / place subagent protocols.
 
 ## Error handling
 

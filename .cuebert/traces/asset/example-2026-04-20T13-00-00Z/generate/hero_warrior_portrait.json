@@ -1,0 +1,16 @@
+{
+  "id": "hero_warrior_portrait",
+  "status": "dry_run_synthetic",
+  "trace_png_path": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/generated/hero_warrior_portrait.png.txt",
+  "checksum_sha256": "sha256:m4p4000000000000000000000000000000000000000000000000000000000003",
+  "duration_ms": 14,
+  "dry_run": true,
+  "workflow": "flux_portrait_v1",
+  "seed": 1001,
+  "toolkit": {
+    "prompt_id": "dry_run_warrior_7b2a9e0f",
+    "tool_status": "pass"
+  },
+  "error_code": null,
+  "notes": "Synthetic 2MiB placeholder path; CUEBERT_COMFYUI_MODE=dry_run."
+}

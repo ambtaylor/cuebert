@@ -1,0 +1,31 @@
+version: 1
+project: hello-level
+generated_at: "2026-04-20T13:11:50Z"
+assets:
+  - id: hero_mage_portrait
+    workflow_hash: sha256:fluxportraitv100000000000000000000000000000000000000000000000001
+    prompt_hash: sha256:promptmage0000000000000000000000000000000000000000000000000001
+    params_hash: sha256:paramsmage0000000000000000000000000000000000000000000000000001
+    seed: 1002
+    result_path: Content/Art/Heroes/hero_mage_portrait.png
+    result_sha256: sha256:m4p4000000000000000000000000000000000000000000000000000000000001
+    comfyui_version: "0.3.0"
+    x_comfyui_version_pin: ">=0.3.0"
+  - id: hero_rogue_portrait
+    workflow_hash: sha256:fluxportraitv100000000000000000000000000000000000000000000000001
+    prompt_hash: sha256:promptrogue0000000000000000000000000000000000000000000000000001
+    params_hash: sha256:paramsrogue0000000000000000000000000000000000000000000000000001
+    seed: 1003
+    result_path: Content/Art/Heroes/hero_rogue_portrait.png
+    result_sha256: sha256:m4p4000000000000000000000000000000000000000000000000000000000002
+    comfyui_version: "0.3.0"
+    x_comfyui_version_pin: ">=0.3.0"
+  - id: hero_warrior_portrait
+    workflow_hash: sha256:fluxportraitv100000000000000000000000000000000000000000000000001
+    prompt_hash: sha256:promptwarrior00000000000000000000000000000000000000000000000001
+    params_hash: sha256:paramswarrior00000000000000000000000000000000000000000000000001
+    seed: 1001
+    result_path: Content/Art/Heroes/hero_warrior_portrait.png
+    result_sha256: sha256:m4p4000000000000000000000000000000000000000000000000000000000003
+    comfyui_version: "0.3.0"
+    x_comfyui_version_pin: ">=0.3.0"

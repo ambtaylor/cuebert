@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "tool": "milestone_commit",
+  "status": "ok",
+  "memory_id": "mem_m4p4_asset_hello_level_20260420",
+  "project_key": "hello-level",
+  "milestone": "asset/2026-04-20-add-hero-portraits",
+  "committed_at": "2026-04-20T13:12:08Z",
+  "files_touched": "Content/Art/Heroes/hero_mage_portrait.png;Content/Art/Heroes/hero_rogue_portrait.png;Content/Art/Heroes/hero_warrior_portrait.png",
+  "trace_dir": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/",
+  "lockfile_path": "/abs/path/hello-level/.cuebert-assets.lock.yaml",
+  "notes": "dry_run=true; lockfile rows appended for three hero portraits; no raw prompts stored."
+}

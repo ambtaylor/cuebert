@@ -51,6 +51,11 @@ Thumbs.db
 .cuebert/traces/ship/*
 !.cuebert/traces/ship/example-*/
 !.cuebert/traces/ship/example-*/**
+# Asset sample trace (M4-P4 worked example) — keep in git
+!.cuebert/traces/asset/
+.cuebert/traces/asset/*
+!.cuebert/traces/asset/example-*/
+!.cuebert/traces/asset/example-*/**
 .cuebert/credentials.local.json
 
 # Secrets (belt and suspenders; vault is the real mechanism)

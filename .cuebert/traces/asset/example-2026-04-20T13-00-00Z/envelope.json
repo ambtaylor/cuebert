@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "asset_run_id": "example-2026-04-20T13-00-00Z",
+  "status": "pass",
+  "project": "hello-level",
+  "engine": "unreal",
+  "engine_version": "5.4.0",
+  "dry_run": true,
+  "started_at": "2026-04-20T13:00:00Z",
+  "ended_at": "2026-04-20T13:12:08Z",
+  "duration_ms": 728000,
+  "generated_count": 3,
+  "skipped_count": 0,
+  "failed_count": 0,
+  "per_asset": [
+    {
+      "id": "hero_mage_portrait",
+      "status": "generated",
+      "result_path": "Content/Art/Heroes/hero_mage_portrait.png"
+    },
+    {
+      "id": "hero_rogue_portrait",
+      "status": "generated",
+      "result_path": "Content/Art/Heroes/hero_rogue_portrait.png"
+    },
+    {
+      "id": "hero_warrior_portrait",
+      "status": "generated",
+      "result_path": "Content/Art/Heroes/hero_warrior_portrait.png"
+    }
+  ],
+  "trace_dir": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/",
+  "lockfile_updated": true,
+  "memory_id": "mem_m4p4_asset_hello_level_20260420",
+  "phase_verdicts": {
+    "pre_plan": "pass",
+    "post_plan": "pass",
+    "post_generate": "pass",
+    "post_place": "pass",
+    "memory": "pass"
+  },
+  "content_verification": {
+    "mode": "simulated",
+    "app_repo": "/abs/path/hello-level",
+    "engine_content_root": "Content/",
+    "entries": [
+      {
+        "destination": "Content/Art/Heroes/hero_mage_portrait.png",
+        "size_bytes": 2097152,
+        "sha256": "sha256:m4p4000000000000000000000000000000000000000000000000000000000001"
+      },
+      {
+        "destination": "Content/Art/Heroes/hero_rogue_portrait.png",
+        "size_bytes": 2097152,
+        "sha256": "sha256:m4p4000000000000000000000000000000000000000000000000000000000002"
+      },
+      {
+        "destination": "Content/Art/Heroes/hero_warrior_portrait.png",
+        "size_bytes": 2097152,
+        "sha256": "sha256:m4p4000000000000000000000000000000000000000000000000000000000003"
+      }
+    ]
+  },
+  "artifacts": {
+    "trace_root": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/",
+    "readme": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/README.md",
+    "guards_pre_plan": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/guards/pre_plan.json",
+    "guards_post_plan": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/guards/post_plan.json",
+    "guards_post_generate": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/guards/post_generate.json",
+    "guards_post_place": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/guards/post_place.json",
+    "plan_envelope": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/plan/envelope.json",
+    "generate_hero_mage_portrait": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/generate/hero_mage_portrait.json",
+    "generate_hero_rogue_portrait": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/generate/hero_rogue_portrait.json",
+    "generate_hero_warrior_portrait": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/generate/hero_warrior_portrait.json",
+    "place_hero_mage_portrait": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/place/hero_mage_portrait.json",
+    "place_hero_rogue_portrait": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/place/hero_rogue_portrait.json",
+    "place_hero_warrior_portrait": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/place/hero_warrior_portrait.json",
+    "lockfile_after": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/lockfile_after.yaml",
+    "memory_envelope": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/memory/envelope.json"
+  },
+  "findings": []
+}

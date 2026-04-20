@@ -1,0 +1,25 @@
+{
+  "status": "pass",
+  "project": "hello-level",
+  "plan": [
+    {
+      "id": "hero_mage_portrait",
+      "action": "generate",
+      "reason": "no_lockfile_row"
+    },
+    {
+      "id": "hero_rogue_portrait",
+      "action": "generate",
+      "reason": "no_lockfile_row"
+    },
+    {
+      "id": "hero_warrior_portrait",
+      "action": "generate",
+      "reason": "no_lockfile_row"
+    }
+  ],
+  "total": 3,
+  "to_generate": 3,
+  "to_skip": 0,
+  "findings": []
+}

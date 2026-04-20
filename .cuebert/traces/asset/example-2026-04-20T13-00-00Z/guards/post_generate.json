@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "phase": "post_generate",
+  "verdict": "pass",
+  "evaluated_at": "2026-04-20T13:05:30Z",
+  "project_key": "hello-level",
+  "engine": "unreal",
+  "guard_config_version": 1,
+  "guards": {
+    "post_generate": [
+      {
+        "asset_id": "hero_mage_portrait",
+        "guard_id": "guard.generate.exit_status",
+        "class": "post-generate",
+        "severity": "pass",
+        "message": "dry_run_synthetic status accepted as success family for dry-run session.",
+        "evidence": {
+          "type": "json",
+          "path": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/generate/hero_mage_portrait.json",
+          "detail": "status=dry_run_synthetic"
+        }
+      },
+      {
+        "asset_id": "hero_mage_portrait",
+        "guard_id": "guard.generate.file_size_sane",
+        "class": "post-generate",
+        "severity": "pass",
+        "message": "Synthetic raster size 2097152 bytes within warn_bytes_min/max.",
+        "evidence": {
+          "type": "file",
+          "path": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/generated/hero_mage_portrait.png.txt",
+          "detail": "size_bytes=2097152"
+        }
+      },
+      {
+        "asset_id": "hero_rogue_portrait",
+        "guard_id": "guard.generate.exit_status",
+        "class": "post-generate",
+        "severity": "pass",
+        "message": "dry_run_synthetic status accepted as success family for dry-run session.",
+        "evidence": {
+          "type": "json",
+          "path": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/generate/hero_rogue_portrait.json",
+          "detail": "status=dry_run_synthetic"
+        }
+      },
+      {
+        "asset_id": "hero_rogue_portrait",
+        "guard_id": "guard.generate.file_size_sane",
+        "class": "post-generate",
+        "severity": "pass",
+        "message": "Synthetic raster size 2097152 bytes within warn_bytes_min/max.",
+        "evidence": {
+          "type": "file",
+          "path": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/generated/hero_rogue_portrait.png.txt",
+          "detail": "size_bytes=2097152"
+        }
+      },
+      {
+        "asset_id": "hero_warrior_portrait",
+        "guard_id": "guard.generate.exit_status",
+        "class": "post-generate",
+        "severity": "pass",
+        "message": "dry_run_synthetic status accepted as success family for dry-run session.",
+        "evidence": {
+          "type": "json",
+          "path": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/generate/hero_warrior_portrait.json",
+          "detail": "status=dry_run_synthetic"
+        }
+      },
+      {
+        "asset_id": "hero_warrior_portrait",
+        "guard_id": "guard.generate.file_size_sane",
+        "class": "post-generate",
+        "severity": "pass",
+        "message": "Synthetic raster size 2097152 bytes within warn_bytes_min/max.",
+        "evidence": {
+          "type": "file",
+          "path": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/generated/hero_warrior_portrait.png.txt",
+          "detail": "size_bytes=2097152"
+        }
+      }
+    ]
+  }
+}

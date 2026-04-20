@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "phase": "post_plan",
+  "verdict": "pass",
+  "evaluated_at": "2026-04-20T13:00:18Z",
+  "project_key": "hello-level",
+  "engine": "unreal",
+  "guard_config_version": 1,
+  "guards": {
+    "post_plan": [
+      {
+        "guard_id": "guard.plan.non_empty",
+        "class": "post-plan",
+        "severity": "pass",
+        "message": "Plan lists to_generate=3 for this session (non no-op).",
+        "evidence": {
+          "type": "json",
+          "path": ".cuebert/traces/asset/example-2026-04-20T13-00-00Z/plan/envelope.json",
+          "detail": "to_generate >= 1"
+        }
+      },
+      {
+        "guard_id": "guard.plan.workflow_available",
+        "class": "post-plan",
+        "severity": "info",
+        "message": "Workflow flux_portrait_v1.json not on disk (M4-P1 empty workflows/); spec_only_as_info=true — narrative continues for dry-run.",
+        "evidence": {
+          "type": "file",
+          "path": ".cursor/skills/comfyui-toolkit/workflows/flux_portrait_v1.json",
+          "detail": "missing until M5 starter graphs; guard recorded as info"
+        }
+      }
+    ]
+  }
+}

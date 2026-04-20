@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "phase": "pre_plan",
+  "verdict": "pass",
+  "evaluated_at": "2026-04-20T13:00:04Z",
+  "project_key": "hello-level",
+  "engine": "unreal",
+  "guard_config_version": 1,
+  "guards": {
+    "pre_plan": [
+      {
+        "guard_id": "guard.project.exists",
+        "class": "pre-plan",
+        "severity": "pass",
+        "message": "projects.hello-level.path resolves to an existing directory (illustrative dry run).",
+        "evidence": {
+          "type": "manifest",
+          "path": ".cuebert/workspace-manifest.json",
+          "detail": "projects.hello-level.path stat ok"
+        }
+      },
+      {
+        "guard_id": "guard.manifest.valid",
+        "class": "pre-plan",
+        "severity": "pass",
+        "message": "asset_manifest_validate returned pass; YAML schema and destinations ok.",
+        "evidence": {
+          "type": "manifest",
+          "path": "/abs/path/hello-level/.cuebert-assets.yaml",
+          "detail": "validator tool from M4-P2; three asset rows accepted"
+        }
+      }
+    ]
+  }
+}

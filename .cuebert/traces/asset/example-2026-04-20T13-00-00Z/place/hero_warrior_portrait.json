@@ -1,0 +1,8 @@
+{
+  "id": "hero_warrior_portrait",
+  "status": "placed",
+  "final_path": "Content/Art/Heroes/hero_warrior_portrait.png",
+  "final_sha256": "sha256:m4p4000000000000000000000000000000000000000000000000000000000003",
+  "backup_path": null,
+  "notes": "Dry-run copied placeholder bytes; atomic rename simulated."
+}

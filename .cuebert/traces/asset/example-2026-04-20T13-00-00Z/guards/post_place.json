@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "phase": "post_place",
+  "verdict": "pass",
+  "evaluated_at": "2026-04-20T13:11:55Z",
+  "project_key": "hello-level",
+  "engine": "unreal",
+  "guard_config_version": 1,
+  "guards": {
+    "post_place": [
+      {
+        "asset_id": "hero_mage_portrait",
+        "guard_id": "guard.place.destination_writable",
+        "class": "post-place",
+        "severity": "pass",
+        "message": "Content/Art/Heroes/ creatable and writable under APP_REPO.",
+        "evidence": {
+          "type": "file",
+          "path": "Content/Art/Heroes/hero_mage_portrait.png",
+          "detail": "mkdir -p semantics succeeded (simulated)"
+        }
+      },
+      {
+        "asset_id": "hero_mage_portrait",
+        "guard_id": "guard.place.lockfile_updated",
+        "class": "post-place",
+        "severity": "pass",
+        "message": "Lockfile row for hero_mage_portrait matches final_sha256 after place.",
+        "evidence": {
+          "type": "manifest",
+          "path": "/abs/path/hello-level/.cuebert-assets.lock.yaml",
+          "detail": "result_sha256=sha256:m4p4000000000000000000000000000000000000000000000000000000000001"
+        }
+      },
+      {
+        "asset_id": "hero_rogue_portrait",
+        "guard_id": "guard.place.destination_writable",
+        "class": "post-place",
+        "severity": "pass",
+        "message": "Content/Art/Heroes/ creatable and writable under APP_REPO.",
+        "evidence": {
+          "type": "file",
+          "path": "Content/Art/Heroes/hero_rogue_portrait.png",
+          "detail": "mkdir -p semantics succeeded (simulated)"
+        }
+      },
+      {
+        "asset_id": "hero_rogue_portrait",
+        "guard_id": "guard.place.lockfile_updated",
+        "class": "post-place",
+        "severity": "pass",
+        "message": "Lockfile row for hero_rogue_portrait matches final_sha256 after place.",
+        "evidence": {
+          "type": "manifest",
+          "path": "/abs/path/hello-level/.cuebert-assets.lock.yaml",
+          "detail": "result_sha256=sha256:m4p4000000000000000000000000000000000000000000000000000000000002"
+        }
+      },
+      {
+        "asset_id": "hero_warrior_portrait",
+        "guard_id": "guard.place.destination_writable",
+        "class": "post-place",
+        "severity": "pass",
+        "message": "Content/Art/Heroes/ creatable and writable under APP_REPO.",
+        "evidence": {
+          "type": "file",
+          "path": "Content/Art/Heroes/hero_warrior_portrait.png",
+          "detail": "mkdir -p semantics succeeded (simulated)"
+        }
+      },
+      {
+        "asset_id": "hero_warrior_portrait",
+        "guard_id": "guard.place.lockfile_updated",
+        "class": "post-place",
+        "severity": "pass",
+        "message": "Lockfile row for hero_warrior_portrait matches final_sha256 after place.",
+        "evidence": {
+          "type": "manifest",
+          "path": "/abs/path/hello-level/.cuebert-assets.lock.yaml",
+          "detail": "result_sha256=sha256:m4p4000000000000000000000000000000000000000000000000000000000003"
+        }
+      }
+    ]
+  }
+}
