@@ -1,6 +1,6 @@
 # Asset manifest — schema & integration
 
-> **SYSTEM ROLE:** Authoritative specification for the **per-project asset manifest** that declares which **2D raster assets** the M4 pipeline (ComfyUI via `comfyui-toolkit` + future asset agent **M4-P3**) should generate, **how** they are produced (workflow, prompts, seeds, parameters), and **where** outputs land inside the **game project** source tree (for example Unreal `Content/`).  
+> **SYSTEM ROLE:** Authoritative specification for the **per-project asset manifest** that declares which **2D raster assets** the M4 pipeline (ComfyUI via `comfyui-toolkit` + **`/asset`** harness **M4-P3**) should generate, **how** they are produced (workflow, prompts, seeds, parameters), and **where** outputs land inside the **game project** source tree (for example Unreal `Content/`).  
 > **Scope:** YAML contract, JSON Schema validation, workspace-manifest wiring, reproducibility expectations, validation severities, and evolution rules. **Not** engine-native asset databases, 3D, audio, animation, or commerce.
 
 ---
@@ -177,6 +177,17 @@ When the M4 toolchain resolves which manifest to load for `project_key`:
    **`not_configured`**, no fatal error for the overall hub, and **M4 asset
    operations skip** that project until a manifest appears.
 
+### 4a. Agent integration
+
+The asset manifest is consumed by cuebert's **`/asset`** harness:
+
+- **Coordinator:** `docs/_ai_system/agents/agent-asset.md`
+- **Planning:** `docs/_ai_system/agents/agent-asset-plan.md` (manifest → execution plan + lockfile diff)
+- **Generation:** `docs/_ai_system/agents/agent-asset-generate.md` (invokes **`comfyui-toolkit`** per asset)
+- **Placement:** `docs/_ai_system/agents/agent-asset-place.md` (validates and places under the project **`Content/`** tree or engine-equivalent roots declared in the manifest)
+
+The **`/asset`** harness also runs an **8-guard** pipeline documented in **`docs/_ai_system/standards/asset-pipeline-guards.md`**, configured by **`.cuebert/config/asset-guards.yaml`**.
+
 ### 4.3 Onboarding expectations (M1 / agent-ops)
 
 The gaming profile template at **`docs/projects/_templates/gaming-profile.md`**
@@ -331,13 +342,15 @@ stdlib structural check** as fallback.
 | `docs/_ai_system/standards/play-preview-guards.md` | Style reference for severity vocabulary and stable ids. |
 | `docs/_ai_system/standards/control-plane-paths.md` | Hub vs app repo path resolution invariants. |
 | `docs/_ai_system/agents/agent-ops-onboard.md` | Workspace manifest authoring during `/onboard`. |
+| `docs/_ai_system/agents/agent-asset.md` | **`/asset`** harness coordinator — manifest consumption, ComfyUI orchestration, placement (M4-P3 spec). |
+| `docs/_ai_system/standards/asset-pipeline-guards.md` | **8** stable guard ids for `/asset` (spec M4-P3). |
 
 ---
 
 ## 10. Footer
 
 **Status:** **M4-P2** — schema + JSON Schema + MCP validator.  
-**Asset agent integration:** **M4-P3**.  
+**Asset agent integration:** **M4-P3** (`agent-asset.md` + plan/generate/place stubs + `asset-pipeline-guards.md`).  
 **Worked plan template:** **M4-P4**.  
 **ComfyUI toolkit HTTP + dry-run client:** landed in **M4-P1**.  
 **Document history:** initial publication **2026-04-20** (**M4-P2**).

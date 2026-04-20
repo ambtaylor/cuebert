@@ -27,7 +27,7 @@ Cuebert memory is **text-only by default** (FTS5/BM25 via `CUEBERT_MEMORY_MODE=t
 
 ## 0. Shortcut Scan (Highest Priority)
 
-Recognized: `/orchestrate` (alias `/o`), `/deploy` (alias `/d`), `/spec`, `/code`, `/review`, `/sec`, `/test`, `/check`, `/docs-user`, `/docs-dev`, `/report`, `/roadmap`, `/jira`, `/feedback`, `/tune`, `/onboard`, `/update`, `/play`, `/ship`, `/dac` (family: `/dac spec`, `/dac code`, `/dac review`, `/dac deploy`); **`--excalidraw`** or **`--e`** on `/dac spec|code|review` selects the Excalidraw JSON track (see DaC Track table)
+Recognized: `/orchestrate` (alias `/o`), `/deploy` (alias `/d`), `/spec`, `/code`, `/review`, `/sec`, `/test`, `/check`, `/docs-user`, `/docs-dev`, `/report`, `/roadmap`, `/jira`, `/feedback`, `/tune`, `/onboard`, `/update`, `/play`, `/ship`, `/asset`, `/dac` (family: `/dac spec`, `/dac code`, `/dac review`, `/dac deploy`); **`--excalidraw`** or **`--e`** on `/dac spec|code|review` selects the Excalidraw JSON track (see DaC Track table)
 
 ### `/play`
 
@@ -38,6 +38,19 @@ Gaming play harness (**coming in M2**). Protocol doc: `docs/_ai_system/agents/ag
 Gaming ship harness (**coming in M3**). Protocol doc: `docs/_ai_system/agents/agent-ship.md`; subagent stubs: `agent-ship-cook.md`, `agent-ship-cert.md`, `agent-ship-package.md`, `agent-ship-upload.md`; guards spec: `docs/_ai_system/standards/ship-guards.md`; config: `.cuebert/config/ship-guards.yaml`; template: `docs/projects/_templates/ship-plan-template.md`; worked example: `docs/_ai_system/examples/ship-sample-run-hello-level.md`. Implementation stubs land in **M3-P1..M3-P3** (this phase closes M3); full cook/cert/package land in **M8**. Until M8 is complete, respond in **main chat** only: *"Ship harness not yet executable (M8)."* Do **not** spawn a Task for `/ship` yet.
 
 When M3 lands, `/ship` follows the same **main-chat protocol** pattern as `/d` — not a named `subagent_type`.
+
+### `/asset`
+
+Gaming asset harness (**M4**). Protocol doc: `docs/_ai_system/agents/agent-asset.md` (this phase: **M4-P3** coordinator + subagent stubs + guards catalog). Until M4-P4 wires a sample runner, respond in **main chat** only: *"Asset harness not yet executable (M4-P4+)."* Do **not** spawn a Task for `/asset` yet.
+
+- **Purpose:** bridges **`comfyui-toolkit`** and a project's **`.cuebert-assets.yaml`** (or `assetManifestPath`) to produce and place **2D rasters** under the game repo **`Content/`** tree (or engine equivalents).
+- **Coordinator:** `docs/_ai_system/agents/agent-asset.md`.
+- **Subagents:** `agent-asset-plan.md`, `agent-asset-generate.md`, `agent-asset-place.md` (under `docs/_ai_system/agents/`).
+- **Guards:** `docs/_ai_system/standards/asset-pipeline-guards.md` (**8** guards, **spec only** M4-P3; evaluator implementations land **M5–M6**).
+- **Config:** `.cuebert/config/asset-guards.yaml`.
+- **Status:** M4-P3 spec ready; **M4-P4** adds plan template + sample run; live execution + engine adapters await **M5+**.
+
+When M4-P4 lands, `/asset` follows the same **main-chat protocol** pattern as `/play` and `/ship` — not a named `subagent_type`.
 
 **Hub operations:** `/onboard [project-name]` registers a project on the hub (`docs/projects/{name}/`). `/update` refreshes the hub checkout and/or **re-scans** a project profile when `[project-name]` is given (`agent-ops-update.md` — not yet ported; deferred). Add the `cuebert` hub to the Cursor multi-root workspace — Cuebert does not copy itself into application repositories. Projects are registered in `.cuebert/workspace-manifest.json` (see `docs/_ai_system/agents/agent-ops-onboard.md` for adding new projects).
 

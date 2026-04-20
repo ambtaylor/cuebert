@@ -1,0 +1,44 @@
+# .cuebert/config/asset-guards.yaml
+# Default Asset Pipeline Guards config for cuebert's /asset harness.
+# See: docs/_ai_system/standards/asset-pipeline-guards.md
+# Version 1 — M4-P3. Evaluators land M5–M6.
+
+version: 1
+
+guards:
+  # Pre-plan
+  guard.project.exists:
+    enabled: true
+    default_severity: fail
+  guard.manifest.valid:
+    enabled: true
+    default_severity: fail
+  # Post-plan
+  guard.plan.non_empty:
+    enabled: true
+    default_severity: fail
+  guard.plan.workflow_available:
+    enabled: true
+    default_severity: fail
+  # Post-generate
+  guard.generate.exit_status:
+    enabled: true
+    default_severity: fail
+  guard.generate.file_size_sane:
+    enabled: true
+    default_severity: warn
+    threshold:
+      warn_bytes_min: 1024         # 1KB floor
+      warn_bytes_max: 52428800     # 50MB ceiling
+  # Post-place
+  guard.place.destination_writable:
+    enabled: true
+    default_severity: fail
+  guard.place.lockfile_updated:
+    enabled: true
+    default_severity: fail
+
+global:
+  generate_max_duration_s: 600          # 10 min per asset
+  total_max_duration_s: 3600            # 1 hour full pipeline
+  spec_only_as_info: true
