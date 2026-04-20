@@ -5,7 +5,7 @@
 > **Activation:** When implemented (M2-P2+), the Cuebert Supervisor loads this protocol into the **main chat** on `/play` — same architectural rule as `/o` and `/d`: the harness MUST NOT be spawned as a named `subagent_type` Task; it runs in the main chat so it can chain phase spawns reliably. See `.cursor/rules/cuebert-supervisor.mdc` §0 (Shortcut Scan) and the `subagent_type` prohibition.  
 > **Execution context:** Main chat (NOT a nested orchestrator subagent). Until M2-P2, the Supervisor responds that the harness is not yet wired; this document is the **normative spec** for that wiring.
 
-> **⛔ M2-P1 scope:** This file is **documentation only**. No `.cursor/agents` slims, no Python/shell harness, and no executable preview automation exist for `/play` in M2-P1. Subagent names below are **placeholders** for later milestones.
+> **CRITICAL — M2-P1 scope:** This file is **documentation only**. No `.cursor/agents` slims, no Python/shell harness, and no executable preview automation exist for `/play` in M2-P1. Subagent names below are **placeholders** for later milestones.
 
 ---
 
