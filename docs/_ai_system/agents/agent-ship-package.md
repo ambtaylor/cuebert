@@ -44,7 +44,7 @@ You bundle **cooked build output** into the configured **distribution format** a
 
 - **Approach:** Create **`.zip`** or **`.tar`** archives with **deterministic member ordering** (for example `zip` with sorted paths, or `tar --sort=name`) and normalized metadata where the format permits.  
 - **Implementation sketch:** `python -m zipfile` with sorted `namelist` inputs, or `tar` with fixed **mtime** at epoch for reproducible builds when policy requires — exact tool choice **M8**.  
-- **Proposed tool:** `cuebert_package_zip` (proposed, **M8**).  
+- **Proposed tool:** `ship_zip_bundle` (proposed, **M8**).  
 - **Status: stub (full impl M8)** — first packaging automation for UE cooked trees.
 
 ### 4.2 `installer` (Tier 2)
