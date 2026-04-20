@@ -31,13 +31,13 @@ Recognized: `/orchestrate` (alias `/o`), `/deploy` (alias `/d`), `/spec`, `/code
 
 ### `/play`
 
-Gaming play harness (**coming in M2**). Full definition: `docs/_ai_system/agents/agent-play.md` (not yet ported; **M2-P1**). Until then, respond in **main chat** only: *"Play harness not yet available (M2)."* Do **not** spawn a Task for `/play`.
+Gaming play harness (**coming in M2**). Protocol doc: `docs/_ai_system/agents/agent-play.md` (landed in **M2-P1**, implementation stubs in **M2-P2..M2-P4**). Until M2 is complete, respond in **main chat** only: *"Play harness not yet executable (M2 in progress)."* Do **not** spawn a Task for `/play` yet.
 
 ### `/ship`
 
 Gaming deploy (**coming in M3**). Full definition ships with M3 (prod-readiness + cook/cert). Until then, respond in **main chat** only: *"Ship harness not yet available (M3)."* Do **not** spawn a Task for `/ship`. When M3 lands, `/ship` follows the same **main-chat protocol** pattern as `/d` — not a named `subagent_type`.
 
-**Hub operations:** `/onboard [project-name]` registers a project on the hub (`docs/projects/{name}/`). `/update` refreshes the hub checkout and/or **re-scans** a project profile when `[project-name]` is given (`agent-ops-update.md`). Add the `cuebert` hub to the Cursor multi-root workspace — Cuebert does not copy itself into application repositories. Projects are registered in `.cuebert/workspace-manifest.json` (see `docs/_ai_system/agents/agent-ops-onboard.md` — **not yet ported; M1-P8** — for adding new projects).
+**Hub operations:** `/onboard [project-name]` registers a project on the hub (`docs/projects/{name}/`). `/update` refreshes the hub checkout and/or **re-scans** a project profile when `[project-name]` is given (`agent-ops-update.md` — not yet ported; deferred). Add the `cuebert` hub to the Cursor multi-root workspace — Cuebert does not copy itself into application repositories. Projects are registered in `.cuebert/workspace-manifest.json` (see `docs/_ai_system/agents/agent-ops-onboard.md` for adding new projects).
 
 If found → shortcut determines the Agent. Do NOT re-interpret intent from surrounding words.
 
