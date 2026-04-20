@@ -55,6 +55,9 @@ GROUPS: dict[str, GroupSpec] = {
         "include_core": True,
         "skills": ["memory-toolkit"],
     },
+    # Asset group tools are loaded from each skill's tools/*.py (register(mcp)).
+    # comfyui-toolkit: comfyui_health_check, comfyui_generate_asset,
+    # comfyui_list_workflows, comfyui_asset_status.
     "asset": {
         "include_core": False,
         "skills": ["comfyui-toolkit", "asset-manifest-toolkit"],

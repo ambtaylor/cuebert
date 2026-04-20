@@ -17,6 +17,28 @@
 #   - engine-log-toolkit   (M6)     qa group
 
 skills:
+  - name: comfyui-toolkit
+    description: "Generate and iterate 2D game assets via a local/remote ComfyUI server."
+    keywords:
+      - comfyui
+      - asset generation
+      - texture
+      - concept art
+      - icon
+      - game art
+    operations:
+      - name: comfyui_health_check
+        description: Probe ComfyUI HTTP reachability and queue hints (supports dry-run).
+      - name: comfyui_generate_asset
+        description: Submit an allow-listed workflow, poll history, and fetch PNG outputs under hub traces.
+      - name: comfyui_list_workflows
+        description: List bundled workflow JSON graphs and optional _cuebert_description metadata.
+      - name: comfyui_asset_status
+        description: Look up completion state for a prompt_id from generate_asset (live or dry-run).
+    skill_path: .cursor/skills/comfyui-toolkit/SKILL.md
+    mcp_group: asset
+    status: alpha
+
   - name: memory-toolkit
     description: "Milestone and troubleshooting memory for cuebert (SQLite FTS5 + optional vector). Text-only by default (CUEBERT_MEMORY_MODE=text); hybrid mode opt-in."
     keywords: [memory, milestone, troubleshoot, lookup, commit, search, remember, history, decisions]
