@@ -39,6 +39,15 @@ You generate the **source edits** and **content wiring** requested by the `/play
 | **`asset_manifest_delta`** | **Stub until M4:** record intended manifest deltas as a markdown table or empty list; full deterministic manifest integration is **`asset-manifest-toolkit`** per `cuebert-gaming-system` plan. |
 | **`notes`** | Risks, follow-ups, or blockers for Preview / QA (e.g. “rebuild required before PIE”). |
 
+### Engine interactions
+
+All reads and scoped writes to the active Unreal Editor flow through **`agent-unreal`** (bridge agent). Author-phase interactions are limited to:
+
+- Probing that the target preset is loaded (`op_kind: describe_preset`).
+- Setting scalar properties on preset-exposed objects (`op_kind: set_property`, scoped to preset).
+
+See `docs/_ai_system/agents/agent-unreal.md` §6 (scope enforcement).
+
 ---
 
 ## 4. Scope guardrails

@@ -39,6 +39,12 @@ You invoke **`comfyui_generate_asset`** once per **planned asset** that requires
 | **`duration_ms`** | Wall time for this asset generation. |
 | **`status`** | **`generated`**, **`failed`**, **`dry_run_synthetic`**. |
 
+### Engine interactions
+
+Read-only checks against the active Unreal Editor (for example confirming **`Content/`** paths against UE registry views) **must** use **`agent-unreal`** probe ops only (`list_presets`, `describe_preset`, `ping_actor`). **`agent-asset-generate`** is **not** permitted to invoke mutate operations.
+
+See `docs/_ai_system/agents/agent-unreal.md` §6 (scope enforcement).
+
 ---
 
 ## 4. Scope guardrails

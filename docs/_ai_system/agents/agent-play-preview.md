@@ -38,6 +38,12 @@ You launch the engine in **preview mode** (Unreal PIE, Unity Play Mode, Godot ru
 | **`exit_code`** | Process exit code from the editor or wrapper; `null` if not captured. |
 | **`duration_ms`** | Wall-clock duration from launch invocation to termination. |
 
+### Engine interactions
+
+Unreal PIE and other in-editor preview starts that use Remote Control **must** go through **`agent-unreal`**. Preview-phase engine calls are limited to **`call_function`** on **preset-exposed** functions (for example PIE start helpers), not ad-hoc object paths.
+
+See `docs/_ai_system/agents/agent-unreal.md` §6 (scope enforcement) and `docs/_ai_system/standards/unreal-bridge-contract.md`.
+
 ---
 
 ## 4. Preview modes (stubs)

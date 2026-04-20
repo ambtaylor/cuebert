@@ -203,6 +203,19 @@ All engineering subagents use `Task(subagent_type: "generalPurpose")`. The subag
 | `/feedback` | `agent-meta-feedback.md` | `/tune` | System Tuning |
 | `/check` | `agent-ops-check.md` (**deprecated** — use `/o --preview` or `/d --preview`) | — | — |
 
+### Dispatching agent-unreal (bridge agent)
+
+`agent-unreal` is **NOT** user-facing (no `/unreal` shortcut). It is dispatched by:
+
+- `agent-play-author` for scoped actor/property queries before authoring changes.
+- `agent-play-preview` for launching in-editor preview via exposed PIE functions.
+- `agent-asset-generate` for read-only UE Content/ queries.
+- `agent-asset-place` for post-place re-import calls.
+
+Direct invocation is reserved for debugging only (when a `/play` or `/asset` plan explicitly sets `debug.agent_unreal: true`). In all other cases, callers **MUST** go through the dispatching harness to ensure scope guardrails fire.
+
+See `docs/_ai_system/agents/agent-unreal.md` and `docs/_ai_system/standards/unreal-bridge-contract.md`.
+
 ## 4. Context Loading — Deferred to Subagents
 
 Standards, knowledge maps, project rules, and registry scans are loaded by **subagents**, not the main chat. Each `.cursor/agents/*.md` file embeds self-loading instructions when those agents exist. The supervisor only resolves routing and the Task envelope.
