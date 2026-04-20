@@ -41,6 +41,10 @@ Gaming play harness (**coming in M2**). Protocol doc: `docs/_ai_system/agents/ag
 
 Gaming ship harness (**coming in M3**). Protocol doc: `docs/_ai_system/agents/agent-ship.md`; subagent stubs: `agent-ship-cook.md`, `agent-ship-cert.md`, `agent-ship-package.md`, `agent-ship-upload.md`; guards spec: `docs/_ai_system/standards/ship-guards.md`; config: `.cuebert/config/ship-guards.yaml`; template: `docs/projects/_templates/ship-plan-template.md`; worked example: `docs/_ai_system/examples/ship-sample-run-hello-level.md`. Implementation stubs land in **M3-P1..M3-P3** (this phase closes M3); full cook/cert/package land in **M8**. Until M8 is complete, respond in **main chat** only: *"Ship harness not yet executable (M8)."* Do **not** spawn a Task for `/ship` yet.
 
+  - /ship pre-flight dispatches agent-prod-readiness-game (spec M7-P2). REJECT
+    findings block cook unless caller is user-direct-debug with --override=accept-risk.
+    Strict gate wiring lands M7-P3.
+
 When M3 lands, `/ship` follows the same **main-chat protocol** pattern as `/d` — not a named `subagent_type`.
 
 ### `/asset`

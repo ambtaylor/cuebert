@@ -50,6 +50,23 @@ Each phase declares a **strict entry gate**. Failing a gate **halts** the pipeli
 - **Dispatch:** Harness-owned evaluation + optional **`generalPurpose`** read-only Task for git/manifest scanning — exact split **M3-P3**.  
 - **Implementation:** Guard contract **M3-P1** (this doc); default config path **`.cuebert/config/ship-guards.yaml`** — **M3-P3**; evaluators **M8** (UE Tier 1 first).
 
+### Pre-ship readiness scan (M7-P2 spec)
+
+Before cook begins, `/ship` dispatches `agent-prod-readiness-game` with:
+
+- `project_path` from the ship plan.
+- `target_platform`, `target_store`, `build_config` from the ship plan.
+
+If any REJECT finding is returned and `override_reject` is not set to `true`,
+`/ship` halts with an error envelope surfacing the findings. INFO findings are
+logged but do not block.
+
+Strict gate wiring (M7-P3) converts this from spec-only to enforced. Until then,
+the call is advisory and `/ship` proceeds regardless.
+
+See: [`agent-prod-readiness-game.md`](./agent-prod-readiness-game.md),
+[`prod-readiness-game-rules.md`](../standards/prod-readiness-game-rules.md).
+
 ### 3.2 Cook
 
 - **Goal:** Invoke the engine’s **cook** pipeline: Unreal **UAT BuildCookRun** (proposed tool name `ue_uat_cook`, **proposed, M8-P1**), Unity **Build Pipeline** entry (proposed, post-M8), Godot **export** CLI (proposed, post-M8).  

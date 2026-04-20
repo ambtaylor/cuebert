@@ -10,6 +10,8 @@
 
 You execute the engine's **cook** pipeline for a declared **project** + **cook flavor** and emit a **structured cook envelope** describing exit status, timing, per-platform cooked roots, size accounting, and log pointers. Pre-requisite **Ship Guards** (pre-cook) have **already** run in the harness; this subagent focuses on the cook subprocess lifecycle only — not certification, packaging, upload, or git state management.
 
+The harness **MAY** also dispatch **`agent-prod-readiness-game`** for cook-time packaging checks (for example PDB presence, staged editor binaries) using the same INFO/REJECT envelope as `/ship` pre-flight. See `docs/_ai_system/agents/agent-prod-readiness-game.md` and `docs/_ai_system/standards/prod-readiness-game-rules.md` (**M7-P2** spec; evaluator **M7-P3**).
+
 ---
 
 ## 2. Inputs

@@ -1,0 +1,88 @@
+# cuebert prod-readiness-game default configuration (M7-P2)
+# Per-project overrides go in <project_path>/.cuebert/prod-readiness.yaml
+# with identical structure.
+
+version: 1
+
+rules:
+  metadata.game_name_set:
+    status: on
+    severity: reject
+  metadata.company_name_set:
+    status: on
+    severity: reject
+  metadata.copyright_notice:
+    status: on
+    severity: info
+  metadata.game_version_parseable:
+    status: on
+    severity: reject
+  packaging.shipping_config_required:
+    status: on
+    severity: reject
+    applies_to:
+      target_store: [steam, epic, gog]
+  packaging.crash_reporter_included:
+    status: on
+    severity: reject
+  packaging.pdb_excluded_in_shipping:
+    status: on
+    severity: reject
+    applies_to:
+      build_config: [Shipping]
+  security.verbose_logging_disabled:
+    status: on
+    severity: reject
+    applies_to:
+      build_config: [Shipping]
+  security.remote_control_disabled_shipping:
+    status: on
+    severity: reject
+    applies_to:
+      build_config: [Shipping]
+  content.no_unused_editor_maps:
+    status: on
+    severity: info
+  content.no_placeholder_assets:
+    status: on
+    severity: reject
+  signing.code_signed:
+    status: on
+    severity: reject
+    applies_to:
+      target_platform: [Win64, Mac, IOS]
+  legal.licenses_included:
+    status: on
+    severity: reject
+  perf.no_shippable_dev_tools:
+    status: on
+    severity: info
+    applies_to:
+      build_config: [Shipping]
+
+# Dispatcher allowlist (agent §6 scope matrix).
+scope:
+  Shipping:
+    required:
+      - agent-ship
+      - agent-ship-cook
+    allowed:
+      - user-direct-debug
+    advisory:
+      - agent-play-qa
+  Test:
+    allowed:
+      - agent-ship
+      - agent-ship-cook
+      - user-direct-debug
+    advisory:
+      - agent-play-qa
+  Development:
+    allowed:
+      - agent-ship
+      - agent-ship-cook
+      - user-direct-debug
+    advisory:
+      - agent-play-qa
+
+spec_only_as_info: true    # M7-P2: rules not yet enforced; M7-P3 flips this
