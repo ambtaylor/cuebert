@@ -6,7 +6,11 @@ runs the MCP server over stdio transport.  Cursor connects via
 
 Discovery order:
   1. ``.cursor/mcp-server/lib/`` added to sys.path (shared utilities like _vault)
-  2. ``.cursor/mcp-server/core/*.py`` — core Cuebert tools (vault, health, build, npm)
+  2. ``.cursor/mcp-server/core/*.py`` — core Cuebert tools (vault, health, build_verify, npm).
+     ``build_verify`` (M6-P4) is gaming-aware: Unreal runs a bounded skill chain
+     (``unreal_build_status``, forced-dry-run ``unreal_build_target``, advisory
+     ``vision_qa_status``); Unity/Godot return ``skip_with_reason`` until M7; web
+     stacks keep the legacy four-check gate when no engine markers match.
   3. ``.cursor/skills/*/tools/*.py`` — toolkit tools
 
 Optional ``--group`` limits discovery to a domain group (see ``GROUPS``). Omit
