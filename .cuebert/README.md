@@ -14,6 +14,13 @@ This folder is the **cuebert hub** for this workspace. It holds version info, th
 | `.cuebert/memory/memory.db` | M1-P6 | SQLite memory DB (gitignored) |
 | `.cuebert/traces/` | later | LangSmith-style traces (gitignored) |
 
+### Game-project LFS template
+
+- `docs/projects/_templates/game-project-gitattributes.template` — verbatim `.gitattributes` block for downstream game projects.
+- `scripts/install-game-lfs.sh <project-path>` — helper to install the template and run `git lfs install` in the target repository.
+- See `docs/_ai_system/standards/game-project-lfs.md` for full guidance.
+- Auto-installed (with user prompt) during `/onboard` for Unreal / Unity / Godot projects (see `docs/_ai_system/agents/agent-ops-onboard.md` §3.1).
+
 ## Workspace manifest (`workspace-manifest.json`)
 
 Project entries under `projects` include a filesystem **`path`** (relative to this hub checkout) plus engine metadata as documented in `docs/_ai_system/agents/agent-ops-onboard.md`. Optional fields include:

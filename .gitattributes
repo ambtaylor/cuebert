@@ -6,4 +6,62 @@
 *.yml text eol=lf
 *.json text eol=lf
 
-# Placeholder for M5 LFS config (actual *.uasset/*.umap tracking added in M5-P2)
+# ==============================================================================
+# Git LFS — Reference patterns for downstream game-project repositories.
+#
+# Cuebert itself is a control-plane hub and contains NO binary game assets.
+# These patterns are safe no-ops in this repo but serve as a canonical reference.
+# Downstream game projects should copy docs/projects/_templates/game-project-gitattributes.template
+# into their own .gitattributes and run `scripts/install-game-lfs.sh <project-path>`.
+#
+# See: docs/_ai_system/standards/game-project-lfs.md
+# ==============================================================================
+
+# Unreal Engine binaries
+*.uasset  filter=lfs diff=lfs merge=lfs -text
+*.umap    filter=lfs diff=lfs merge=lfs -text
+*.ubulk   filter=lfs diff=lfs merge=lfs -text
+*.uexp    filter=lfs diff=lfs merge=lfs -text
+*.pak     filter=lfs diff=lfs merge=lfs -text
+
+# Unity binaries
+# (Note: some Unity teams prefer Unity's SmartMerge over LFS for .prefab/.unity/.asset.
+#  If your team uses SmartMerge, remove those three lines from your downstream .gitattributes.)
+*.prefab  filter=lfs diff=lfs merge=lfs -text
+*.unity   filter=lfs diff=lfs merge=lfs -text
+*.asset   filter=lfs diff=lfs merge=lfs -text
+*.anim    filter=lfs diff=lfs merge=lfs -text
+*.mat     filter=lfs diff=lfs merge=lfs -text
+
+# Godot binaries
+*.tscn  filter=lfs diff=lfs merge=lfs -text
+*.tres  filter=lfs diff=lfs merge=lfs -text
+*.res   filter=lfs diff=lfs merge=lfs -text
+# Godot text scenes (.tscn) are a judgment call — many teams keep them as text.
+# The template linked below commented-out .tscn / .tres and let the team decide.
+
+# 3D models
+*.fbx  filter=lfs diff=lfs merge=lfs -text
+*.obj  filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text
+
+# Textures / images (game-project Content/)
+*.psd  filter=lfs diff=lfs merge=lfs -text
+*.tga  filter=lfs diff=lfs merge=lfs -text
+*.exr  filter=lfs diff=lfs merge=lfs -text
+# Note: cuebert's M4 asset pipeline generates PNGs into game-project Content/Art/,
+# so PNGs ARE typically LFS-tracked in downstream projects. Not tracked in hub.
+*.png  filter=lfs diff=lfs merge=lfs -text
+*.jpg  filter=lfs diff=lfs merge=lfs -text
+
+# Audio
+*.wav  filter=lfs diff=lfs merge=lfs -text
+*.ogg  filter=lfs diff=lfs merge=lfs -text
+*.mp3  filter=lfs diff=lfs merge=lfs -text
+
+# Video
+*.mp4  filter=lfs diff=lfs merge=lfs -text
+*.mov  filter=lfs diff=lfs merge=lfs -text
+
+# Archives (not typically checked in; listed for completeness)
+*.zip  filter=lfs diff=lfs merge=lfs -text

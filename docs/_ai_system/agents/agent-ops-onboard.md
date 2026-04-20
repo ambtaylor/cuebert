@@ -54,6 +54,43 @@ If no engine marker is detected → return the "not a game project" error above.
 2. Create or refresh **`profile.md`** using `docs/projects/_templates/gaming-profile.md` as the structural template; fill in engine, version, language, and source dirs from Step 2.
 3. Preserve any existing **`knowledge/`** or **`plans/`** subtrees if re-onboarding.
 
+### 3.1 LFS install prompt (Unreal / Unity / Godot)
+
+After `profile.md` is written, evaluate Git LFS setup **before** updating `workspace-manifest.json`.
+
+1. **When to prompt:** If `profile.engine` is one of `unreal`, `unity`, or `godot` **and** `profile.lfs_configured` is missing or explicitly `false`, inspect the **application repository** (workspace-visible game project root, not the cuebert hub) for existing LFS rules:
+   - If `.gitattributes` exists and contains `filter=lfs`, treat the project as LFS-capable and set `lfs_configured` to `true` without prompting.
+   - If no `.gitattributes` or no `filter=lfs` lines are found, prompt the operator:
+
+     ```
+     This project is a game project ({engine}). Cuebert recommends enabling Git LFS for binary assets.
+     Run scripts/install-game-lfs.sh <project-path>?
+       [y] yes — install LFS template now
+       [n] no — skip for now (you can re-run /onboard later)
+       [m] manual — print instructions and let me do it
+     ```
+
+     Use the absolute or workspace-relative path to the **game repository root** for `<project-path>`.
+
+2. **Record `lfs_configured` in the hub profile** (`docs/projects/{project-name}/profile.md`, following `docs/projects/_templates/gaming-profile.md`):
+
+   - `true` — the operator chose **yes** and the script completed successfully, **or** LFS rules were already present as detected above, **or** the operator installed the template manually and confirmed success.
+   - `false` — the operator chose **no** or **manual**, or the install attempt failed / was deferred.
+   - `"na"` — reserved for profiles where the engine is outside the LFS scope (should not occur for `unreal` / `unity` / `godot`); use only when explicitly documenting a non-binary engine stub.
+
+   Example YAML fragment (embed in profile metadata or mirror in manifest as needed):
+
+   ```yaml
+   lfs_configured: false  # true | false | "na"
+   ```
+
+3. **Memory envelope:** When persisting onboarding via memory-toolkit `milestone_commit` (or equivalent project-registration envelope), include `lfs_configured` and the operator’s choice (`y` / `n` / `m`) in structured metadata so future sessions can skip redundant prompts.
+
+4. **Manual path:** If the operator chooses **manual**, print the canonical commands:
+
+   - `bash <cuebert-hub>/scripts/install-game-lfs.sh <project-path>`
+   - Link: `docs/_ai_system/standards/game-project-lfs.md`
+
 ## 4. Update workspace-manifest.json
 
 Add or update the project entry in `.cuebert/workspace-manifest.json`:
@@ -67,11 +104,14 @@ Add or update the project entry in `.cuebert/workspace-manifest.json`:
       "engine_version": "5.4",
       "language": "cpp",
       "description": "<one-line from user or '(not set)'>",
-      "installed": "YYYY-MM-DD"
+      "installed": "YYYY-MM-DD",
+      "lfs_configured": false
     }
   }
 }
 ```
+
+`lfs_configured` mirrors the hub profile field: `true` when LFS rules are present or the install helper succeeded, `false` when skipped or pending, `"na"` only when explicitly not applicable.
 
 Use the detected engine info from Step 2. Write the date as today's UTC date.
 
@@ -97,9 +137,10 @@ This is one-time operator setup, not per-project. See Issue I-4 (platform suppor
 3. Scan app tree for engine markers (Step 2); secondarily note `package.json` / `pyproject.toml` for tooling context only.
 4. If a non-game stack is detected (e.g. React/Angular/manifest-only Node or Python **without** engine markers) → error + exit.
 5. Upsert `docs/projects/{project-name}/` on the hub using `gaming-profile.md` template.
-6. Upsert entry in `.cuebert/workspace-manifest.json`.
-7. Run MCP readiness check.
-8. Report.
+6. Run **§3.1 LFS install prompt** when engine is Unreal / Unity / Godot and LFS is not yet configured.
+7. Upsert entry in `.cuebert/workspace-manifest.json` (include `lfs_configured` when the schema supports it).
+8. Run MCP readiness check.
+9. Report.
 
 ## 7. Report
 
@@ -108,6 +149,7 @@ After onboard, output:
 - **Project name** and **workspace-visible app path**
 - **Engine + version + language**
 - **Hub paths touched:** `docs/projects/{name}/profile.md`, `.cuebert/workspace-manifest.json`
+- **LFS:** `lfs_configured` value and whether the install helper was offered or skipped
 - **MCP status:** READY / NEEDS_FIX
 - **Next steps:** populate `knowledge/`, open a `/spec` for first feature once M2 ships
 

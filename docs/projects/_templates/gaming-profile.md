@@ -9,6 +9,14 @@
 - **Repository:** {APP_PATH}
 - **Hub path:** `docs/projects/{project_name}/`
 
+## Profile fields (/onboard)
+
+- `lfs_configured` (boolean | `"na"`) — Whether cuebert's LFS template was installed in this project.
+  - `true`: installed via `scripts/install-game-lfs.sh` or manually, or `.gitattributes` in the game repo already contains `filter=lfs` rules detected during `/onboard`.
+  - `false`: declined or not yet run.
+  - `"na"`: project is not engine-backed (should not occur for engines `unreal` / `unity` / `godot`).
+  - Set by `agent-ops-onboard.md` during `/onboard`, or manually by the user.
+
 ## Stack summary
 
 {One-paragraph description, seeded by onboard auto-detection. Fill in with genre, art style, target platforms as project grows.}

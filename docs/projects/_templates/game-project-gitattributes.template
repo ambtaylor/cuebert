@@ -1,0 +1,91 @@
+# ==============================================================================
+# Cuebert LFS template for game projects — v1 (M5-P2)
+#
+# Engines covered: Unreal Engine 5, Unity, Godot (plus shared media extensions).
+# Adjust commented stanzas for SmartMerge, Godot text scenes, or optional types.
+#
+# Drop this into your game project's .gitattributes.
+# If you already have a .gitattributes, append this block below your existing
+# rules.
+#
+# After installing:
+#   1. Run `git lfs install` inside your project (once per clone).
+#   2. Run `git add .gitattributes && git commit -m "chore: enable LFS for game assets"`.
+#   3. Re-add any already-tracked files that match these patterns if you want
+#      them to move to LFS going forward (they'll stay as regular blobs in
+#      existing history; see `git lfs migrate import` for retroactive moves).
+#
+# Reference: https://github.com/ambtaylor/cuebert/blob/master/docs/_ai_system/standards/game-project-lfs.md
+# ==============================================================================
+
+# ---------------------------------------------------------------------------
+# Unity SmartMerge (YAML merge) — optional
+# If your team uses SmartMerge for scenes/prefabs, DO NOT LFS those types.
+# Uncomment the next 3 lines to force text merge for .prefab / .unity / .asset,
+# and REMOVE or comment out the three LFS lines for those extensions in the
+# block below.
+# ---------------------------------------------------------------------------
+# *.prefab merge=unityyamlmerge eol=lf
+# *.unity  merge=unityyamlmerge eol=lf
+# *.asset  merge=unityyamlmerge eol=lf
+
+# ---------------------------------------------------------------------------
+# Godot — text-first option
+# Many teams keep .tscn / .tres as normal text. If that is you, comment out
+# those two LFS lines inside the machine block below (search for *.tscn).
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Machine-installable block (do not edit markers — used by install-game-lfs.sh)
+# ---------------------------------------------------------------------------
+# <<<BEGIN_CUEBERT_GAME_LFS_V1>>>
+# Unreal Engine binaries
+*.uasset  filter=lfs diff=lfs merge=lfs -text
+*.umap    filter=lfs diff=lfs merge=lfs -text
+*.ubulk   filter=lfs diff=lfs merge=lfs -text
+*.uexp    filter=lfs diff=lfs merge=lfs -text
+*.pak     filter=lfs diff=lfs merge=lfs -text
+
+# Unity binaries (see SmartMerge notes above)
+*.prefab  filter=lfs diff=lfs merge=lfs -text
+*.unity   filter=lfs diff=lfs merge=lfs -text
+*.asset   filter=lfs diff=lfs merge=lfs -text
+*.meta    filter=lfs diff=lfs merge=lfs -text
+*.anim    filter=lfs diff=lfs merge=lfs -text
+*.mat     filter=lfs diff=lfs merge=lfs -text
+
+# Godot (see text-first notes above)
+*.tscn  filter=lfs diff=lfs merge=lfs -text
+*.tres  filter=lfs diff=lfs merge=lfs -text
+*.res   filter=lfs diff=lfs merge=lfs -text
+# *.import filter=lfs diff=lfs merge=lfs -text
+# ^ Judgment call: .import files are often small sidecars; uncomment if your
+#   pipeline generates large imports or you want uniform binary handling.
+
+# 3D models
+*.fbx   filter=lfs diff=lfs merge=lfs -text
+*.obj   filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text
+
+# Textures / images
+*.psd  filter=lfs diff=lfs merge=lfs -text
+*.tga  filter=lfs diff=lfs merge=lfs -text
+*.exr  filter=lfs diff=lfs merge=lfs -text
+*.png  filter=lfs diff=lfs merge=lfs -text
+*.jpg  filter=lfs diff=lfs merge=lfs -text
+
+# Audio / video
+*.wav  filter=lfs diff=lfs merge=lfs -text
+*.ogg  filter=lfs diff=lfs merge=lfs -text
+*.mp3  filter=lfs diff=lfs merge=lfs -text
+*.mp4  filter=lfs diff=lfs merge=lfs -text
+*.mov  filter=lfs diff=lfs merge=lfs -text
+
+# Archives (rare in-repo; listed for completeness)
+*.zip  filter=lfs diff=lfs merge=lfs -text
+
+# Optional: lossless TIFF / BMP if your art pipeline commits them
+# *.tif   filter=lfs diff=lfs merge=lfs -text
+# *.tiff  filter=lfs diff=lfs merge=lfs -text
+# *.bmp   filter=lfs diff=lfs merge=lfs -text
+# <<<END_CUEBERT_GAME_LFS_V1>>>
