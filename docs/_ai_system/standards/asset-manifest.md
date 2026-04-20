@@ -401,6 +401,7 @@ as **semver-major** events for automation.
 
 | Code | Typical severity |
 |------|------------------|
+| `workspace_manifest.unreadable` | `info` |
 | `project.not_in_workspace_manifest` | `info` |
 | `project.invalid_entry` | `fail` |
 | `project.path_missing` | `fail` |
