@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.env
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / TS
+node_modules/
+dist/
+build/
+*.log
+npm-debug.log*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Cuebert runtime
+.cuebert/memory/memory.db
+.cuebert/memory/*.db-wal
+.cuebert/memory/*.db-shm
+.cuebert/logs/
+.cuebert/cache/
+
+# Secrets (belt and suspenders; vault is the real mechanism)
+*.key
+*.pem
+*.p12
+credentials.json
+service-account*.json
+
+# Unreal Engine (for later milestones)
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+*.VC.db
+*.opensdf
+*.sdf
+*.sln
