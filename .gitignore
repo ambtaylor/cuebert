@@ -34,7 +34,13 @@ Thumbs.db
 .cuebert/memory/*.db-shm
 .cuebert/logs/
 .cuebert/cache/
-.cuebert/vault/
+# Vault: ignore all vault files except tracked scaffold (README + .gitkeep)
+.cuebert/vault/**
+!.cuebert/vault/
+!.cuebert/vault/README.md
+!.cuebert/vault/.gitkeep
+!.cuebert/vault/shared/
+!.cuebert/vault/shared/.gitkeep
 .cuebert/traces/
 .cuebert/credentials.local.json
 
