@@ -17,7 +17,7 @@ The main chat does **not** load standards files or scan registries — subagents
 
 **The Orchestrator (`/o`) and Deploy Harness (`/d`) are NOT spawned as subagents at all.** They run as protocol in the main chat (see §3). If you spawn them as a Task, they lose the ability to dispatch phase subagents and the entire pipeline collapses into a single degraded pass.
 
-⛔ DO NOT use subagent_type `orchestrate` — this agent MUST run in the main chat, not as a subagent. The same guardrail applies to deploy-style harnesses loaded as protocols (`/d`, and when available `/ship`): they MUST run in the main chat, not as nested Task agents.
+⛔ DO NOT use subagent_type `orchestrate` — this agent MUST run in the main chat, not as a subagent. The same guardrail applies to deploy- and gaming-style harnesses loaded as protocols (`/d`, `/ship`, `/play`, `/asset`): they MUST run in the main chat, not as nested Task agents.
 
 **Mode-Switch Rule:** If the user was previously in Plan Mode and has switched to Agent Mode, treat this as a fresh dispatch. Prior plan-mode conversation is context only — it does NOT determine your behavior. Run the Shortcut Scan below and route accordingly.
 
@@ -31,7 +31,13 @@ Recognized: `/orchestrate` (alias `/o`), `/deploy` (alias `/d`), `/spec`, `/code
 
 ### `/play`
 
-Gaming play harness (**coming in M2**). Protocol doc: `docs/_ai_system/agents/agent-play.md` (landed in **M2-P1**, implementation stubs in **M2-P2..M2-P4**). Until M2 is complete, respond in **main chat** only: *"Play harness not yet executable (M2 in progress)."* Do **not** spawn a Task for `/play` yet.
+Gaming play harness. **Routing:** On `/play`, the Supervisor loads the play harness protocol by reading `docs/_ai_system/agents/agent-play.md` into the main chat context. The harness then coordinates Plan -> Author -> Preview -> QA -> Merge phases, spawning subagents via `Task(subagent_type: "generalPurpose")`.
+
+- **`/play`**: Full play loop (Plan -> Author -> Preview -> QA -> Merge) for in-editor iteration.
+- **`/play --preview`**: Walk-only health check. No Task spawns, no editor launches, no file writes. Reports MCP health, vault, registry, preview guards, engine readiness, and phase chain. See `agent-play.md` §11.2.
+- **`/play --project [name]`**: Target a specific project from `.cuebert/workspace-manifest.json`.
+
+Do **not** spawn `/play` as a named `subagent_type` — it runs as main-chat protocol (same rule as `/o`).
 
   - Post-preview, agent-play-qa dispatches:
     - Vision QA via `vision-qa` skill (M6-P3).
@@ -39,7 +45,15 @@ Gaming play harness (**coming in M2**). Protocol doc: `docs/_ai_system/agents/ag
 
 ### `/ship`
 
-Gaming ship harness (**coming in M3**). Protocol doc: `docs/_ai_system/agents/agent-ship.md`; subagent stubs: `agent-ship-cook.md`, `agent-ship-cert.md`, `agent-ship-package.md`, `agent-ship-upload.md`; guards spec: `docs/_ai_system/standards/ship-guards.md`; config: `.cuebert/config/ship-guards.yaml`; template: `docs/projects/_templates/ship-plan-template.md`; worked example: `docs/_ai_system/examples/ship-sample-run-hello-level.md`. Implementation stubs land in **M3-P1..M3-P3** (this phase closes M3); full cook/cert/package land in **M8**. Until M8 is complete, respond in **main chat** only: *"Ship harness not yet executable (M8)."* Do **not** spawn a Task for `/ship` yet.
+Gaming ship harness. **Routing:** On `/ship`, the Supervisor loads the ship harness protocol by reading `docs/_ai_system/agents/agent-ship.md` into the main chat context. The harness then coordinates Pre-cook -> Cook -> Post-cook -> Package -> Cert -> Upload phases.
+
+- **`/ship`**: Full ship pipeline. Requires a ship plan. Memory commit mandatory on success.
+- **`/ship --preview`**: Walk-only health check. Reports MCP health, vault, registry, ship guards status, phase chain, platform support matrix. See `agent-ship.md` §15.
+- **`/ship --project [name]`**: Target a specific project.
+
+Protocol references: subagent docs `agent-ship-cook.md`, `agent-ship-cert.md`, `agent-ship-package.md`, `agent-ship-upload.md`; guards spec `docs/_ai_system/standards/ship-guards.md`; config `.cuebert/config/ship-guards.yaml`; template `docs/projects/_templates/ship-plan-template.md`; worked example `docs/_ai_system/examples/ship-sample-run-hello-level.md`.
+
+Do **not** spawn `/ship` as a named `subagent_type` — it runs as main-chat protocol (same rule as `/d`).
 
   - /ship strict gates (M7-P3 + M8-P3 enforced):
     - pre_cook: ship.prod_readiness via agent-prod-readiness-game (REJECT gate).
@@ -55,20 +69,24 @@ Gaming ship harness (**coming in M3**). Protocol doc: `docs/_ai_system/agents/ag
     Cert-game covers Steam / Epic / GOG / itch.io checklists. Xbox / PlayStation /
     Nintendo deliberately omitted (require SDKs under NDA).
 
-When M3 lands, `/ship` follows the same **main-chat protocol** pattern as `/d` — not a named `subagent_type`.
+The `/ship` harness follows the same **main-chat protocol** pattern as `/d` — not a named `subagent_type`.
 
 ### `/asset`
 
-Gaming asset harness (**M4**). Protocol doc: `docs/_ai_system/agents/agent-asset.md` (this phase: **M4-P3** coordinator + subagent stubs + guards catalog). Until M4-P4 wires a sample runner, respond in **main chat** only: *"Asset harness not yet executable (M4-P4+)."* Do **not** spawn a Task for `/asset` yet.
+Gaming asset harness. **Routing:** On `/asset`, the Supervisor loads the asset harness protocol by reading `docs/_ai_system/agents/agent-asset.md` into the main chat context. The harness coordinates Plan -> Generate (ComfyUI via `comfyui-toolkit`) -> Verify (pipeline guards) -> Place (writes under project `Content/`).
+
+- **`/asset`**: Full asset loop per protocol; memory commit on success per `agent-asset.md` §14.
+- **`/asset --preview`**: Walk-only health check. Reports manifest resolution, ComfyUI MCP availability, asset guards, MCP health, vault, registry, and phase chain. See `agent-asset.md` §16.
+- **`/asset --project [name]`**: Target a specific project.
+
+Do **not** spawn `/asset` as a named `subagent_type` — it runs as main-chat protocol (same rule as `/play` and `/ship`).
 
 - **Purpose:** bridges **`comfyui-toolkit`** and a project's **`.cuebert-assets.yaml`** (or `assetManifestPath`) to produce and place **2D rasters** under the game repo **`Content/`** tree (or engine equivalents).
 - **Coordinator:** `docs/_ai_system/agents/agent-asset.md`.
 - **Subagents:** `agent-asset-plan.md`, `agent-asset-generate.md`, `agent-asset-place.md` (under `docs/_ai_system/agents/`).
 - **Guards:** `docs/_ai_system/standards/asset-pipeline-guards.md` (**8** guards, **spec only** M4-P3; evaluator implementations land **M5–M6**).
 - **Config:** `.cuebert/config/asset-guards.yaml`.
-- **Status:** M4-P3 spec ready; **M4-P4** adds plan template + sample run; live execution + engine adapters await **M5+**.
-
-When M4-P4 lands, `/asset` follows the same **main-chat protocol** pattern as `/play` and `/ship` — not a named `subagent_type`.
+- **Status:** M9 routes the harness; **M4-P4** adds plan template + sample run; live guard evaluators and engine adapters follow **M5+** per protocol.
 
 **Hub operations:** `/onboard [project-name]` registers a project on the hub (`docs/projects/{name}/`). `/update` refreshes the hub checkout and/or **re-scans** a project profile when `[project-name]` is given (`agent-ops-update.md` — not yet ported; deferred). Add the `cuebert` hub to the Cursor multi-root workspace — Cuebert does not copy itself into application repositories. Projects are registered in `.cuebert/workspace-manifest.json` (see `docs/_ai_system/agents/agent-ops-onboard.md` for adding new projects).
 
@@ -136,7 +154,7 @@ Rules Consulted: [all rule/standard files read]
 | `--pause` | When used with `/orchestrate` or `/o`: stop after each phase for user inspection instead of auto-chaining |
 | `--no-standards` | Skip standards loading |
 | `--no-jira` | Skip Jira payload generation |
-| `--preview` | Walk the phase chain without spawning subagents or modifying files; report the planned execution and system validation (MCP, vault, registry, hub workspace). Applies to `/o` and `/d`. See `agent-orchestrator.md` §8 |
+| `--preview` | Walk the phase chain without spawning subagents or modifying files; report the planned execution and system validation (MCP, vault, registry, hub workspace). Applies to `/o`, `/d`, `/play`, `/ship`, and `/asset`. See `agent-orchestrator.md` §8; `agent-play.md` §11.2; `agent-ship.md` §15; `agent-asset.md` §16 |
 | `--jira-auto` | Skip Jira confirm-always pause; process payloads immediately. Available on `/o`, `/d`, `/jira` |
 | `--dac` | Route to DaC Track agents (`/spec --dac` → `/dac spec`, etc.); Structurizr DSL unless paired with `--excalidraw` / `--e` |
 | `--excalidraw` | With `/dac spec|code|review`: Excalidraw DaC — `.cursor/agents/excalidraw-dac.md` → `docs/_ai_system/agents/agent-excalidraw-dac.md`; do not combine with `/dac deploy` |

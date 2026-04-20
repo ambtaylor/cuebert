@@ -2,10 +2,10 @@
 
 > **Role:** Fast-iteration harness coordinator for gameplay-visible changes  
 > **Shortcut:** `/play`  
-> **Activation:** When implemented (M2-P2+), the Cuebert Supervisor loads this protocol into the **main chat** on `/play` — same architectural rule as `/o` and `/d`: the harness MUST NOT be spawned as a named `subagent_type` Task; it runs in the main chat so it can chain phase spawns reliably. See `.cursor/rules/cuebert-supervisor.mdc` §0 (Shortcut Scan) and the `subagent_type` prohibition.  
-> **Execution context:** Main chat (NOT a nested orchestrator subagent). Until M2-P2, the Supervisor responds that the harness is not yet wired; this document is the **normative spec** for that wiring.
+> **Activation:** As of **M9**, the Cuebert Supervisor loads this protocol into the **main chat** on `/play` — same architectural rule as `/o` and `/d`: the harness MUST NOT be spawned as a named `subagent_type` Task; it runs in the main chat so it can chain phase spawns reliably. See `.cursor/rules/cuebert-supervisor.mdc` §0 (Shortcut Scan) and the `subagent_type` prohibition.  
+> **Execution context:** Main chat (NOT a nested orchestrator subagent).
 
-> **CRITICAL — M2-P1 scope:** This file is **documentation only**. No `.cursor/agents` slims, no Python/shell harness, and no executable preview automation exist for `/play` in M2-P1. Subagent names below are **placeholders** for later milestones.
+> **M9 activation:** The `/play` harness is **live** in the Supervisor routing table. Phase automation and evaluators remain milestone-gated where noted below; **`/play --preview`** is the walk-only health check (§11.2): no Task spawns, no editor launches, no file writes.
 
 ---
 
@@ -285,7 +285,7 @@ The `/play` harness will dispatch **generalPurpose** Tasks (per Cuebert supervis
 
 ### 6.2 Negative harness tests (plan cross-reference)
 
-`docs/projects/cue/plans/active/cuebert-gaming-system.md` defines **N-2**: `/play --preview` must print the phase chain **without** spawning subagents. `/play` preview semantics intentionally mirror `agent-orchestrator.md` §8 **walk-only** behavior; MCP probes list for `/play` preview — **M2-P3**.
+`docs/projects/cue/plans/active/cuebert-gaming-system.md` defines **N-2**: `/play --preview` must print the phase chain **without** spawning subagents. `/play` preview semantics mirror `agent-orchestrator.md` §8 **walk-only** behavior; the normative protocol is **§11.2**.
 
 ---
 
@@ -378,14 +378,88 @@ The harness **MAY** call `troubleshoot_search` before re-attempting Author after
 | Doc | Relationship |
 |-----|----------------|
 | `docs/_ai_system/standards/control-plane-paths.md` | Plan locations (`⟨CuebertActivePlans⟩`), `{active-project}` resolution, hub vs app paths. |
-| `.cursor/rules/cuebert-supervisor.mdc` | Shortcut registration; `/play` stub response until M2-P2 wires harness; `subagent_type` prohibitions. |
+| `.cursor/rules/cuebert-supervisor.mdc` | Shortcut registration; `/play` harness routing (M9+); `subagent_type` prohibitions. |
 | `docs/_ai_system/agents/agent-orchestrator.md` | Pattern reference for main-chat harness + phased Tasks (`/o`); remediation and `--preview` §8. |
 | `docs/_ai_system/agents/agent-ops-onboard.md` | Gaming registration + `.cuebert/workspace-manifest.json` fields used as inputs. |
 | `docs/_ai_system/standards/agent-shared-lifecycle.md` | Subagent structured results §12 — **M2-P2** aligns `/play` spawn outputs. |
 
-### 11.2 `/play --preview` (future)
+### 11.2 `/play --preview` — Walk-Only Health Check
 
-`/play --preview` walks **Plan → Author → Preview → QA → Merge** with **no Task spawns** and **no repo writes**, analogous to `agent-orchestrator.md` §8. Output schema, MCP health inclusion, and registry checks — **M2-P3** (plan **N-2**).
+When the user passes `--preview` on `/play`, the harness walks the phase chain **without spawning subagents, launching editors, or modifying any files**. This is a preview that shows what would happen plus system validation.
+
+**Activation:** `--preview` is detected in the Supervisor's Global Modifiers (`.cursor/rules/cuebert-supervisor.mdc` §2) and passed in the envelope.
+
+**Behavior:**
+
+1. **Workspace manifest resolution:** Read `.cuebert/workspace-manifest.json`. Resolve active project per §5.1 inputs (`--project` flag, then manifest keys, then heuristics). Report project name, engine, `engine_version`, language, path. If no projects registered, report `NOT_FOUND` and suggest `/onboard`.
+2. **MCP server health probe:** Call `sequentialthinking` (same health probe pattern as the Supervisor pre-dispatch gate in `.cursor/rules/cuebert-supervisor.mdc` §7). Report PASS or FAIL. Also verify **`cuebert-core`**, **`cuebert-engine`**, **`cuebert-qa`** server availability by listing known tool groups (and **`cuebert-asset`** when asset-adjacent checks apply).
+3. **Vault resolution check:** Spot-check vault paths relevant to gaming (for example `shared/unreal/engine_path` when `engine=unreal`). Report PASS or FAIL per path with brief details on failure.
+4. **Registry consistency scan:** Read `.cuebert/registry/skills.yaml`. For each skill entry, verify `skill_path` exists on disk. Report missing files as FAIL entries.
+5. **Hub validation:** Invoke the **`cuebert_system_check`** MCP tool with `scope="all"`. Summarize overall status.
+6. **Preview Guards availability:** For each of the five Preview Guards (**G-1** through **G-5** from §4), report whether the evaluator is **implemented (live)** or **spec-only (stub)**. Cross-check **`.cuebert/config/play-guards.yaml`** for enabled flags and severities (IDs there may extend the §4 catalog; report both the five G-* rows and any additional enabled guard rows from config).
+7. **Phase chain walk:** List the full `/play` phase sequence with prerequisite checks:
+   - **Plan** → `agent-play.md` §3.1 — prerequisites: workspace manifest present, active project resolved.
+   - **Author** → `agent-play-author.md` — prerequisites: Plan phase output, declared scope.
+   - **Preview** → `agent-play-preview.md` — prerequisites: Author phase output, engine reachable (**G-1**).
+   - **QA** → `agent-play-qa.md` — prerequisites: preview artifacts, guard report.
+   - **Merge** → main-chat (or delegated `generalPurpose` Task per §3.5) — prerequisites: all guards pass, QA pass.
+8. **Engine-specific readiness:** Based on detected engine:
+   - **Unreal:** Check **unreal-bridge** availability (**`cuebert-engine`** MCP group), **unreal-build** tools, **vision-qa** tools, **gauntlet-toolkit** (when registered).
+   - **Unity:** Report **Tier 2 — stubs only, no live automation.**
+   - **Godot:** Report **Tier 3 — stubs only.**
+   - **None:** Report **No engine detected. Run `/onboard` first.**
+9. **Do NOT:** Spawn any Task subagents, launch any editor, edit any files, or write to git.
+
+**Output format:**
+
+```
+=== /play PREVIEW ===
+Command: /play --preview [project]
+Project: [name | NOT_FOUND]
+Engine: [unreal | unity | godot | none]
+Engine Version: [version | unknown]
+Language: [from manifest]
+Branch: [current git branch]
+
+MCP Health:
+  sequentialthinking: [PASS | FAIL]
+  cuebert-core: [PASS | FAIL]
+  cuebert-engine: [PASS | FAIL]
+  cuebert-qa: [PASS | FAIL]
+
+Vault (gaming spot-check): [PASS | FAIL | details]
+Registry (skills on disk): [PASS | FAIL | missing paths]
+Hub integrity (cuebert_system_check): [PASS | WARN | FAIL | summary]
+
+Preview Guards:
+  G-1 Engine reachability: [live | stub (M5)]
+  G-2 Compile sanity: [live | stub (M5-M6)]
+  G-3 Critical log patterns: [live | stub (M5-M6)]
+  G-4 Asset reference integrity: [live | stub (M4-M5)]
+  G-5 Scope containment: [live | stub (M2-P3 spec)]
+
+Phase Chain:
+  1. Plan -> agent-play.md §3.1 [prerequisites met: yes/no]
+  2. Author -> agent-play-author.md [prerequisites met: yes/no]
+  3. Preview -> agent-play-preview.md [prerequisites met: yes/no]
+  4. QA -> agent-play-qa.md [prerequisites met: yes/no]
+  5. Merge -> main-chat [prerequisites met: yes/no]
+
+Engine Readiness:
+  unreal-bridge: [available | not available]
+  unreal-build: [available | not available]
+  vision-qa: [available | not available]
+  gauntlet: [available | not available]
+
+Estimated Subagent Spawns: [count]
+Modifiers Active: [list]
+
+Issues:
+  - [any problems detected]
+=============================
+```
+
+For `--preview` runs, **Estimated Subagent Spawns** MUST be **0** (walk-only). **Modifiers Active** MUST include `--preview` when set.
 
 ### 11.3 What `/play` does NOT own
 
@@ -397,4 +471,4 @@ The harness **MAY** call `troubleshoot_search` before re-attempting Author after
 
 ### 11.4 Footer
 
-Status: M2-P1 (documentation only). Implementation phases: M2-P2 (agent stubs), M2-P3 (preview guards), M2-P4 (sample plan).
+Status: **M9** — Supervisor routes `/play` and **`/play --preview`** per §11.2. Deeper phase automation remains phased per §3 and the gaming-system plan; guard evaluators follow §4 and `.cuebert/config/play-guards.yaml`.

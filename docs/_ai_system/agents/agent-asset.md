@@ -2,10 +2,10 @@
 
 > **Role:** Asset-pipeline harness coordinator for manifest-driven ComfyUI generation and project-tree placement  
 > **Shortcut:** `/asset`  
-> **Activation:** When implemented (M4-P4+ harness wiring; evaluators M5–M6), the Cuebert Supervisor loads this protocol into the **main chat** on `/asset` — same architectural rule as `/o` and `/d`: the harness MUST NOT be spawned as a named `subagent_type` Task; it runs in the main chat so it can chain phase spawns reliably. See `.cursor/rules/cuebert-supervisor.mdc` section 0 (Shortcut Scan) and the `subagent_type` prohibition.  
-> **Execution context:** Main chat (NOT a nested orchestrator subagent). Until M4-P4, the Supervisor responds that the harness is not yet wired; this document is the **normative spec** for that wiring.
+> **Activation:** As of **M9**, the Cuebert Supervisor loads this protocol into the **main chat** on `/asset` — same architectural rule as `/o` and `/d`: the harness MUST NOT be spawned as a named `subagent_type` Task; it runs in the main chat so it can chain phase spawns reliably. See `.cursor/rules/cuebert-supervisor.mdc` section 0 (Shortcut Scan) and the `subagent_type` prohibition.  
+> **Execution context:** Main chat (NOT a nested orchestrator subagent).
 
-> **CRITICAL — M4-P3 scope:** This file is **documentation only**. No `.cursor/agents` slims, no Python/shell harness runner, and no live ComfyUI orchestration exist for `/asset` in M4-P3. Subagent names below are **protocol stubs** for M4-P4 sample runs and M5+ engine adapters.
+> **M9 activation:** The `/asset` harness is **live** in the Supervisor routing table. ComfyUI dispatch, guard evaluators, and engine adapters remain milestone-gated where noted below; **`/asset --preview`** is the walk-only health check (§16): no Task spawns, no ComfyUI HTTP (unless the operator explicitly runs outside preview rules), no placement writes.
 
 ---
 
@@ -408,7 +408,70 @@ milestone_commit(
 
 ---
 
-## 16. Cross-references
+## 16. Preview Mode (`/asset --preview`)
+
+When the user passes `--preview` on `/asset`, the harness walks the asset phase chain **without spawning subagents, calling live ComfyUI generation, or writing placed rasters into the application repository**. This mirrors `agent-orchestrator.md` §8 and `agent-play.md` §11.2: validation and reporting only.
+
+**Activation:** `--preview` is detected in the Supervisor's Global Modifiers (`.cursor/rules/cuebert-supervisor.mdc` §2) and passed in the envelope.
+
+**Phase chain for `/asset --preview`:**
+
+1. **Plan** — manifest discovery, asset selection, lockfile diff (report-only).
+2. **Generate** — ComfyUI dispatch via **`comfyui-toolkit`** (preview lists tools and workflow availability; **no** `comfyui_generate_asset` execution unless a future flag explicitly documents diagnostic probes — default **no HTTP**).
+3. **Verify** — pipeline guards from **`.cuebert/config/asset-guards.yaml`** (report evaluator posture: live vs spec-only per §6).
+4. **Place** — file write to project **`Content/`** tree (preview reports target paths only; **no** writes).
+
+**Additional checks:**
+
+- **Asset manifest resolution:** Verify **`<project-root>/.cuebert-assets.yaml`** exists **or** **`projects.<key>.assetManifestPath`** in **`.cuebert/workspace-manifest.json`** resolves to an on-disk file.
+- **ComfyUI availability:** List **`comfyui-toolkit`** tool names exposed under the **`cuebert-asset`** MCP group (`comfyui_health_check`, `comfyui_list_workflows`, `comfyui_generate_asset`, etc.); report PASS or FAIL for registry reachability.
+- **Asset pipeline guards:** Read **`.cuebert/config/asset-guards.yaml`** and summarize enabled guard IDs, default severities, and whether evaluators are **live** or **spec-only** (§6).
+
+**Shared validation steps:** Resolve workspace manifest and active project; probe **`sequentialthinking`** and **`cuebert-*`** MCP groups; spot-check vault paths used by ComfyUI / asset tooling; verify **`.cuebert/registry/skills.yaml`** `skill_path` entries on disk; run **`cuebert_system_check`** with `scope="all"` and summarize. **Do NOT** spawn Tasks, invoke `comfyui_generate_asset` for real pixels (unless an explicit diagnostic exception is documented), or mutate the app repo lockfile.
+
+**Output format:**
+
+```
+=== /asset PREVIEW ===
+Command: /asset --preview [project]
+Project: [name | NOT_FOUND]
+Engine: [from manifest | unknown]
+Manifest path: [resolved path | NOT_FOUND]
+Asset rows (count): [n]
+
+MCP Health:
+  sequentialthinking: [PASS | FAIL]
+  cuebert-core: [PASS | FAIL]
+  cuebert-asset: [PASS | FAIL]
+  cuebert-engine: [PASS | FAIL]
+  cuebert-qa: [PASS | FAIL]
+
+ComfyUI toolkit (cuebert-asset): [PASS | FAIL | tool list summary]
+Vault (asset spot-check): [PASS | FAIL | details]
+Registry (skills on disk): [PASS | FAIL | missing paths]
+Hub integrity (cuebert_system_check): [PASS | WARN | FAIL | summary]
+
+Asset guards (.cuebert/config/asset-guards.yaml): [summary per guard id]
+
+Phase Chain:
+  1. Plan -> manifest discovery [prerequisites met: yes/no]
+  2. Generate -> comfyui-toolkit [prerequisites met: yes/no]
+  3. Verify -> pipeline guards [prerequisites met: yes/no]
+  4. Place -> Content/ tree [prerequisites met: yes/no]
+
+Estimated Subagent Spawns: [count]
+Modifiers Active: [list]
+
+Issues:
+  - [any problems]
+=============================
+```
+
+For `--preview` runs, **Estimated Subagent Spawns** MUST be **0**. **Modifiers Active** MUST include `--preview` when set.
+
+---
+
+## 17. Cross-references
 
 | Doc | Relationship |
 |-----|--------------|
@@ -423,10 +486,10 @@ milestone_commit(
 | `docs/_ai_system/agents/agent-ship.md` | Peer distribution harness |
 | `docs/_ai_system/standards/control-plane-paths.md` | Trace + plan path conventions |
 | `docs/_ai_system/agents/agent-ops-onboard.md` | Workspace manifest onboarding |
-| `.cursor/rules/cuebert-supervisor.mdc` | `/asset` shortcut stub |
+| `.cursor/rules/cuebert-supervisor.mdc` | `/asset` harness routing (M9+) |
 
 ---
 
-## 17. Footer
+## 18. Footer
 
-**Status:** **M4-P3** — coordinator spec + subagent stubs + guards catalog + default YAML. **Plan template + sample run:** **M4-P4**. **Unreal import bridge:** **M5**. **Vision QA:** **M6**. **Live guard evaluators that block at `fail`:** **M5–M6** once **`spec_only_as_info`** is flipped project-by-project with real evaluators deployed.
+**Status:** **M9** — Supervisor routes `/asset` and **`/asset --preview`** per §16. Coordinator spec, subagent protocols, and guards catalog remain as below; **M4-P4** plan template + sample run; **M5** Unreal import bridge; **M6** vision QA; **M5–M6** live guard evaluators once **`spec_only_as_info`** is flipped project-by-project with real evaluators deployed.

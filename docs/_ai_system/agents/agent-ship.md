@@ -2,10 +2,10 @@
 
 > **Role:** Distribution-build harness coordinator for cook + certification + packaging  
 > **Shortcut:** `/ship`  
-> **Activation:** When implemented (M3-P3+), the Cuebert Supervisor loads this protocol into the **main chat** on `/ship` — same architectural rule as `/o` and `/d`: the harness MUST NOT be spawned as a named `subagent_type` Task; it runs in the main chat so it can chain phase spawns reliably. See `.cursor/rules/cuebert-supervisor.mdc` §0 (Shortcut Scan) and the `subagent_type` prohibition.  
-> **Execution context:** Main chat (NOT a nested orchestrator subagent). Until M3-P3, the Supervisor responds that the harness is not yet wired; this document is the **normative spec** for that wiring.
+> **Activation:** As of **M9**, the Cuebert Supervisor loads this protocol into the **main chat** on `/ship` — same architectural rule as `/o` and `/d`: the harness MUST NOT be spawned as a named `subagent_type` Task; it runs in the main chat so it can chain phase spawns reliably. See `.cursor/rules/cuebert-supervisor.mdc` §0 (Shortcut Scan) and the `subagent_type` prohibition.  
+> **Execution context:** Main chat (NOT a nested orchestrator subagent).
 
-> **CRITICAL — M3-P1 scope:** This file is **documentation only**. No `.cursor/agents` slims, no Python/shell harness, and no executable cook or cert automation exist for `/ship` in M3-P1. Subagent names in §11 are **placeholders** for M3-P2 stubs and M8 full implementations.
+> **M9 activation:** The `/ship` harness is **live** in the Supervisor routing table. Cook, cert, package, and upload automation depth remain milestone-gated where noted below; **`/ship --preview`** is the walk-only health check (§15): no Task spawns, no cook subprocesses, no file writes.
 
 ---
 
@@ -493,7 +493,80 @@ Nested under `/o`: Orchestrator memory bridges MAY add fields, but they **must n
 
 ---
 
-## 15. Cross-references
+## 15. Preview Mode (`/ship --preview`)
+
+When the user passes `--preview` on `/ship`, the harness walks the ship phase chain **without spawning subagents, invoking cook or package tools, uploading artifacts, or modifying repository files**. This mirrors `agent-orchestrator.md` §8 and `agent-play.md` §11.2: validation and reporting only.
+
+**Activation:** `--preview` is detected in the Supervisor's Global Modifiers (`.cursor/rules/cuebert-supervisor.mdc` §2) and passed in the envelope.
+
+**Phase chain for `/ship --preview`:**
+
+1. **Pre-cook guards** — **`ship.prod_readiness`** via **`agent-prod-readiness-game`** (REJECT gate at full run; preview reports status only).
+2. **Cook** — **`agent-ship-cook`** → **`agent-cook-package-game`** (cook phase only at full run; preview lists delegation and prerequisites).
+3. **Post-cook guards** — **`ship.qa_resilience`** via **`agent-qa-resilience-game`**.
+4. **Package** — **`agent-ship-package`** → **`agent-cook-package-game`** (stage + package phases).
+5. **Cert** — **`agent-ship-cert`** → **`agent-cert-game`** (advisory only at full run).
+6. **Upload** — **disabled by default**; preview reports channel only when the ship plan would enable it.
+
+**Additional checks:**
+
+- **Ship Guards availability:** Read **`.cuebert/config/ship-guards.yaml`**. For each top-level guard key under `guards:` (including **`ship.prod_readiness`**, **`ship.cook_package`**, **`ship.qa_resilience`**, **`ship.cert_advisory`**, and catalog rows such as **`guard.git.clean`**), report **`status` / `enabled`**, **`phase_boundary`** (or implied class for catalog rows), and **`default_severity`**.
+- **Platform matrix:** From the ship plan (or defaults), resolve **`target_platform`** / **`target_platforms`**. For each target, cross-check **`.cuebert/config/cook-package-game.yaml`** → **`platform_matrix`** and report **`on`** as **supported**, **`skeleton`** as **skeleton**, absent keys as **unsupported** (normalize names to the matrix spelling, e.g. `Win64`, `Mac`, `Linux`, `IOS`, `Android`).
+
+**Behavior (aligned with `/play --preview`):** Resolve workspace manifest and active project; probe **`sequentialthinking`** and **`cuebert-*`** MCP groups; spot-check gaming vault paths; verify **`.cuebert/registry/skills.yaml`** `skill_path` entries on disk; run **`cuebert_system_check`** with `scope="all"` and summarize. **Do NOT** spawn Tasks, run UAT, write envelopes to trace dirs, or mutate git.
+
+**Output format:**
+
+```
+=== /ship PREVIEW ===
+Command: /ship --preview [project]
+Project: [name | NOT_FOUND]
+Engine: [engine]
+Target Platform: [from plan or default]
+Target Store: [from plan or default]
+Build Config: [from plan or default]
+
+MCP Health:
+  sequentialthinking: [PASS | FAIL]
+  cuebert-core: [PASS | FAIL]
+  cuebert-engine: [PASS | FAIL]
+  cuebert-qa: [PASS | FAIL]
+
+Vault (gaming spot-check): [PASS | FAIL | details]
+Registry (skills on disk): [PASS | FAIL | missing paths]
+Hub integrity (cuebert_system_check): [PASS | WARN | FAIL | summary]
+
+Ship Guards:
+  ship.prod_readiness: [on | off] pre_cook [REJECT gate]
+  ship.cook_package: [on | off] cook_through_package [FAIL gate]
+  ship.qa_resilience: [on | off] post_cook [REJECT gate]
+  ship.cert_advisory: [on | off] cert [ADVISORY]
+  [... other guards from ship-guards.yaml ...]
+
+Phase Chain:
+  1. Pre-cook -> ship.prod_readiness [prerequisites met: yes/no]
+  2. Cook -> agent-ship-cook -> agent-cook-package-game [prerequisites met: yes/no]
+  3. Post-cook -> ship.qa_resilience [prerequisites met: yes/no]
+  4. Package -> agent-ship-package -> agent-cook-package-game [prerequisites met: yes/no]
+  5. Cert -> agent-ship-cert -> agent-cert-game [prerequisites met: yes/no]
+  6. Upload -> [disabled by default | enabled: channel]
+
+Platform Support (cook-package-game):
+  [platform]: [supported | skeleton | unsupported]
+
+Estimated Subagent Spawns: [count]
+Modifiers Active: [list]
+
+Issues:
+  - [any problems]
+=============================
+```
+
+For `--preview` runs, **Estimated Subagent Spawns** MUST be **0**. **Modifiers Active** MUST include `--preview` when set.
+
+---
+
+## 16. Cross-references
 
 | Doc | Relationship |
 |-----|--------------|
@@ -503,13 +576,13 @@ Nested under `/o`: Orchestrator memory bridges MAY add fields, but they **must n
 | `docs/_ai_system/standards/vault-standard.md` | Credential resolution for upload phase |
 | `docs/_ai_system/agents/agent-ops-onboard.md` | **`workspace-manifest.json`** schema and project registration |
 | `.cursor/skills/memory-toolkit/SKILL.md` | `milestone_commit`, `troubleshoot_commit` tool semantics |
-| `docs/_ai_system/agents/agent-orchestrator.md` | Main-chat harness + `--preview` pattern reference for future `/ship --preview` |
-| `.cursor/rules/cuebert-supervisor.mdc` | `/ship` stub until wired; forbidden `subagent_type` values |
+| `docs/_ai_system/agents/agent-orchestrator.md` | Main-chat harness + `--preview` walk-only pattern reference |
+| `.cursor/rules/cuebert-supervisor.mdc` | `/ship` harness routing (M9+); forbidden `subagent_type` values |
 | `docs/projects/cue/plans/active/cuebert-gaming-system.md` | Authoritative milestone plan — M3/M8 ship scope |
 | `docs/_ai_system/standards/ship-guards.md` §2.2, §4.5, §11 | **`ship.prod_readiness`**, **`ship.qa_resilience`**, **`ship.cook_package`**, **`ship.cert_advisory`** contracts and enforcement status |
 
 ---
 
-## 16. Footer
+## 17. Footer
 
-Status: M3-P1 protocol doc; M8-P3 integrates cook-package + cert-game dispatch and **`ship.cook_package`** / **`ship.cert_advisory`** guards. Executable harness: M3-P3+.
+Status: **M9** — Supervisor routes `/ship` and **`/ship --preview`** per §15. M8-P3 integrates cook-package + cert-game dispatch and **`ship.cook_package`** / **`ship.cert_advisory`** guards for full runs; automation depth follows §3 and the gaming-system plan.
