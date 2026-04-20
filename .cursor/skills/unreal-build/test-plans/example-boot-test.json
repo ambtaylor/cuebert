@@ -1,0 +1,8 @@
+{
+  "name": "HelloLevelTests.BootTest",
+  "description": "Boots PIE, waits 5 seconds, captures screenshot, exits. Canonical smoke test for cuebert gaming onboarding.",
+  "required_role": "Editor",
+  "required_build": false,
+  "timeout_s": 180,
+  "notes": "Ships with cuebert /play hello-level example. Expected to pass in dry-run mode via synthesized TestReport.json."
+}

@@ -67,7 +67,8 @@ GROUPS: dict[str, GroupSpec] = {
     # unreal_describe_preset, unreal_ping_actor.
     # Unreal bridge (M5-P4): unreal_set_property, unreal_call_function.
     # Unreal build  (M6-P1): unreal_build_status, unreal_build_target,
-    # unreal_run_commandlet, unreal_tail_log.
+    # unreal_run_commandlet, unreal_tail_log
+    # Unreal build  (M6-P2): unreal_run_gauntlet
     # All loaded via dynamic discovery from .cursor/skills/unreal-*/tools/*.py
     "engine": {
         "include_core": False,

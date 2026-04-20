@@ -84,6 +84,7 @@ skills:
       - unreal_build_target
       - unreal_run_commandlet
       - unreal_tail_log
+      - unreal_run_gauntlet
     mcp_group: engine
     status: alpha
 

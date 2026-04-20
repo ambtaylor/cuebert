@@ -157,6 +157,10 @@ Each build or commandlet invocation that materializes traces writes under:
 
 `.cuebert/traces/build/<YYYY-mm-ddTHH-MM-SSZ>/`
 
+Gauntlet runs write under:
+
+`.cuebert/traces/gauntlet/<YYYY-mm-ddTHH-MM-SSZ>/` (with `gauntlet_logs/` for `-logdir`)
+
 Files:
 
 | File | Contents |

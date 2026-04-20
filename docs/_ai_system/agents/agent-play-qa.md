@@ -139,7 +139,7 @@ Run checks **in the order below** unless the harness specifies otherwise. Early 
 | **Multimodal LLM** screenshot analysis | M6-P3 |
 | **Gameplay balance** or economy tuning | Human / campaign agents |
 | **Packaging validation** | `/ship`, M3/M8 |
-| **Headless Gauntlet / UAT** | M6-P2 |
+| **Headless Gauntlet / UAT** | M6-P2 (`unreal_run_gauntlet`); scope automation still M6+ |
 | **Certification scans** | M7 prod-readiness gaming agents |
 
 ---

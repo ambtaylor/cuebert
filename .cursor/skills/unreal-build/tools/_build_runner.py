@@ -25,6 +25,7 @@ _VAULT_BUILD_MODE_KEY = "unreal.build_mode"
 _VAULT_BUILD_TIMEOUT_KEY = "unreal.build_timeout_s"
 _MAX_OUTPUT_BYTES = 50 * 1024 * 1024
 _MAX_HARD_TIMEOUT_S = 3600.0
+_MAX_GAUNTLET_TIMEOUT_S = 1800.0
 _TRUNC_MARKER = b"\n<truncated>\n"
 
 _DRY_RUN_VERSION = "5.4.0-dry_run"
@@ -327,6 +328,12 @@ def _resolve_default_timeout_s() -> float:
 def _cap_timeout(timeout_s: float | None) -> float:
     base = float(timeout_s) if timeout_s is not None else _resolve_default_timeout_s()
     return min(_MAX_HARD_TIMEOUT_S, max(1.0, base))
+
+
+def _cap_gauntlet_timeout(timeout_s: float | None) -> float:
+    """Clamp Gauntlet/UAT RunUnreal timeouts to **1800s** (30 minutes) max."""
+    base = float(timeout_s) if timeout_s is not None else _resolve_default_timeout_s()
+    return min(_MAX_GAUNTLET_TIMEOUT_S, max(1.0, base))
 
 
 def _minimal_subprocess_env(extra: dict[str, str] | None = None) -> dict[str, str]:

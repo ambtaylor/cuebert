@@ -284,6 +284,23 @@ agents can align naming early.
 - **Failure:** same tuple plus `exit_code` and `stderr_tail` list (last 100
   lines for UBT; commandlet failures use stderr tail as well).
 - **Blocked commandlet:** commandlet string, caller, `allowed_count`.
+- **Gauntlet:** pass counts on success; failure list + stderr tail on `fail`;
+  engine missing / parse errors on `error`.
 
 The hub memory DB stores these as operational troubleshooting rows (`source`:
 `agent`) consistent with **unreal-bridge** mutate tooling.
+
+---
+
+## JUnit / XML hardening (Gauntlet)
+
+`_gauntlet_parser.parse_gauntlet_xml_fallback`:
+
+1. **defusedxml** — When `defusedxml` is importable, the parser reads only the first
+   **max_bytes** from disk into `io.BytesIO` and uses `defusedxml.ElementTree.parse`,
+   which avoids XXE and hostile DTD behavior by design.
+2. **stdlib fallback** — If `defusedxml` is absent: strip the first `<!DOCTYPE …>`
+   declaration (internal-subset aware), then `xml.etree.ElementTree.fromstring` with
+   `XMLParser(resolve_entities=False)` on Python **3.13+** (expat entity resolution off).
+   Older interpreters fall back to a plain `XMLParser()` after DOCTYPE removal
+   (reduced blast radius; installing **defusedxml** is recommended for untrusted XML).
