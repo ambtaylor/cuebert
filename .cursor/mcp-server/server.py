@@ -44,7 +44,7 @@ class GroupSpec(TypedDict):
 # Expected skills (populated across M1-P6 and M4-M6):
 #   core:   memory-toolkit (M1-P6)
 #   asset:  comfyui-toolkit, asset-manifest-toolkit (M4)
-#   engine: unreal-bridge-toolkit, git-lfs-toolkit (M5)
+#   engine: unreal-bridge, git-lfs-toolkit (M5)
 #   qa:     gauntlet-toolkit, vision-qa-toolkit, screenshot-baseline-toolkit, engine-log-toolkit (M6)
 #
 # Each skill directory appears in at most one group. The lists are the
@@ -62,9 +62,13 @@ GROUPS: dict[str, GroupSpec] = {
         "include_core": False,
         "skills": ["comfyui-toolkit", "asset-manifest-toolkit"],
     },
+    # Engine group tools are loaded from each skill's tools/*.py (register(mcp)).
+    # Unreal bridge (M5-P1): unreal_health_check, unreal_list_presets,
+    # unreal_describe_preset, unreal_ping_actor.
+    # All loaded via dynamic discovery from .cursor/skills/unreal-bridge/tools/*.py
     "engine": {
         "include_core": False,
-        "skills": ["unreal-bridge-toolkit", "git-lfs-toolkit"],
+        "skills": ["unreal-bridge", "git-lfs-toolkit"],
     },
     "qa": {
         "include_core": False,

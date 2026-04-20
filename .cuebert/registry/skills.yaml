@@ -9,7 +9,7 @@
 #   - memory-toolkit       (M1-P6)  core group
 #   - comfyui-toolkit      (M4-P1)  asset group
 #   - asset-manifest-toolkit (M4-P2) asset group
-#   - unreal-bridge-toolkit (M5-P1) engine group
+#   - unreal-bridge        (M5-P1)  engine group
 #   - git-lfs-toolkit      (M5-P2)  engine group
 #   - gauntlet-toolkit     (M6-P2)  qa group
 #   - vision-qa-toolkit    (M6-P3)  qa group
@@ -39,6 +39,24 @@ skills:
         description: List bundled workflow JSON graphs and optional _cuebert_description metadata.
     skill_path: .cursor/skills/comfyui-toolkit/SKILL.md
     mcp_group: asset
+    status: alpha
+
+  - name: unreal-bridge
+    description: Query and control a running Unreal Editor via Epic's Remote Control HTTP API. Use for inspecting presets, describing exposed properties/functions, and (in future phases) driving property sets and function calls.
+    keywords:
+      - unreal
+      - unreal engine
+      - ue5
+      - remote control
+      - preset
+      - actor
+    operations:
+      - unreal_health_check
+      - unreal_list_presets
+      - unreal_describe_preset
+      - unreal_ping_actor
+    skill_path: .cursor/skills/unreal-bridge/SKILL.md
+    mcp_group: engine
     status: alpha
 
   - name: memory-toolkit
