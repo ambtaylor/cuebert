@@ -1,0 +1,8 @@
+{
+  "op_kind": "set_property",
+  "caller": "agent-play-author",
+  "matrix_reference": "docs/_ai_system/agents/agent-unreal.md §6.1",
+  "cell": {"caller": "agent-play-author", "set_property": true},
+  "allow": true,
+  "reason": "Matrix row allows set_property for agent-play-author"
+}

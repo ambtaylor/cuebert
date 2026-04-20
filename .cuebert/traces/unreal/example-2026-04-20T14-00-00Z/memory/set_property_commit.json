@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "id": "11111111-2222-4333-8444-555555555501",
+  "tool": "troubleshoot_commit",
+  "problem": "unreal_set_property dry_run accepted",
+  "tags": "unreal-bridge,set_property,dry_run",
+  "agent": "unreal_set_property",
+  "record_date": "2026-04-20"
+}

@@ -1,0 +1,30 @@
+{
+  "status": "dry_run",
+  "operation": "mutate",
+  "op_kind": "call_function",
+  "caller": "agent-play-preview",
+  "preset_name": "hello_level_preset",
+  "object_path": "/Game/Blueprints/BP_PIEController.BP_PIEController_C",
+  "function_name": "StartPIE",
+  "args": {},
+  "return_value": true,
+  "base_url": "http://localhost:30010",
+  "mode": "dry_run",
+  "editor_version": "5.4.0-dry_run",
+  "mutation_audit": {
+    "timestamp": "2026-04-20T14:00:05Z",
+    "caller": "agent-play-preview",
+    "op_kind": "call_function",
+    "preset": "hello_level_preset",
+    "object_path": "/Game/Blueprints/BP_PIEController.BP_PIEController_C",
+    "function": "StartPIE",
+    "from": null,
+    "to": true,
+    "mode": "dry_run",
+    "editor_version": "5.4.0-dry_run",
+    "reversal_hint": null,
+    "audit_status": "ok"
+  },
+  "error": null,
+  "elapsed_ms": 3
+}

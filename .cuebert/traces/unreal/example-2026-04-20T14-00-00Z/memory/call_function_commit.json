@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "id": "11111111-2222-4333-8444-555555555502",
+  "tool": "troubleshoot_commit",
+  "problem": "unreal_call_function dry_run accepted",
+  "tags": "unreal-bridge,call_function,dry_run",
+  "agent": "unreal_call_function",
+  "record_date": "2026-04-20"
+}

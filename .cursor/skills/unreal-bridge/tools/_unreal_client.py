@@ -1,7 +1,11 @@
 """Shared Unreal Editor Remote Control HTTP client with dry-run support.
 
-HTTP GET subset only (websocket deferred). Mirrors the structure of
-``_comfyui_client.py`` for vault/env resolution, timeouts, and safety rails.
+HTTP GET plus **PUT** for ``/remote/object/property`` and ``/remote/object/call``
+(websocket deferred). Mirrors the structure of ``_comfyui_client.py`` for
+vault/env resolution, timeouts, and safety rails.
+
+Stable finding / error code tokens (see ``unreal-bridge-contract.md`` §4):
+``unreal.put_rejected``, ``unreal.readback_failed``.
 """
 
 from __future__ import annotations
@@ -24,8 +28,13 @@ _VAULT_MODE_KEY = "unreal.mode"
 _VAULT_TIMEOUT_KEY = "unreal.timeout_s"
 _VAULT_FALLBACK_LOGGED = False
 _MAX_BODY_BYTES = 10_000_000
+_MAX_REQUEST_BODY_BYTES = 256 * 1024
 _MAX_TIMEOUT_S = 30.0
 _DEFAULT_TIMEOUT_S = 10.0
+
+# Error-code tokens referenced by mutate tools and docs (contract §4).
+FINDING_PUT_REJECTED = "unreal.put_rejected"
+FINDING_READBACK_FAILED = "unreal.readback_failed"
 
 _DRY_RUN_VERSION = "5.4.0-dry_run"
 _DRY_RUN_PLUGINS = [
@@ -51,6 +60,13 @@ _DRY_RUN_PRESET_DETAIL: dict[str, Any] = {
 
 _PRESET_NAME_RE = re.compile(r"^[A-Za-z0-9_.-]{1,128}$")
 _ACTOR_LABEL_RE = re.compile(r"^[A-Za-z0-9_. -]{1,256}$")
+_OBJECT_PATH_RE = re.compile(r"^[A-Za-z0-9_./-]{1,512}$")
+_PROPERTY_OR_FUNCTION_NAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]{0,127}$")
+
+_DRY_RUN_PUT_RESPONSE: dict[str, Any] = {
+    "transactionId": "dry_run_txn_7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "status": "accepted",
+}
 
 
 class _NoFollowRedirect(urllib.request.HTTPRedirectHandler):
@@ -254,13 +270,233 @@ def _http_get(url: str, timeout: float) -> tuple[int, dict[str, Any] | list[Any]
     return _http_request("GET", url, timeout=timeout, data=None)
 
 
-def _http_put(url: str, body: bytes | None, timeout: float) -> tuple[int, dict[str, Any] | list[Any] | None, str | None]:
-    """PUT skeleton for M5-P4 ``/remote/object/property`` and ``/remote/object/call``.
+def _http_put(url: str, body: bytes | None, timeout: float) -> dict[str, Any]:
+    """PUT helper; mirrors ``_http_get`` (opener, caps, JSON parsing, no redirects)."""
+    status, data, err = _http_request("PUT", url, timeout=timeout, data=body)
+    body_dict = data if isinstance(data, dict) else None
+    ok = err is None and 200 <= status < 300
+    return {
+        "ok": ok,
+        "http_status": status,
+        "response_body": body_dict,
+        "error": err,
+    }
 
-    P1 tools do not call this; it mirrors ``_http_get`` so future writes share
-    the same opener, caps, and JSON parsing rules.
+
+def _ue_body_errors(body: dict[str, Any] | None) -> bool:
+    if not isinstance(body, dict):
+        return False
+    errs = body.get("errors") or body.get("Errors")
+    return isinstance(errs, list) and len(errs) > 0
+
+
+def _sanitize_object_path(object_path: str) -> str | None:
+    if not object_path or not _OBJECT_PATH_RE.match(object_path):
+        return None
+    return object_path
+
+
+def _sanitize_property_or_function_name(name: str) -> str | None:
+    if not name or not _PROPERTY_OR_FUNCTION_NAME_RE.match(name):
+        return None
+    return name
+
+
+def get_exposed_property(
+    base_url: str,
+    object_path: str,
+    property_name: str,
+    timeout: float,
+) -> dict[str, Any]:
+    """GET ``/remote/object/property``; return structured result (no exceptions)."""
+    op = _sanitize_object_path(object_path)
+    pn = _sanitize_property_or_function_name(property_name)
+    if op is None:
+        return {
+            "ok": False,
+            "http_status": None,
+            "value": None,
+            "response_body": None,
+            "error": "invalid object_path",
+        }
+    if pn is None:
+        return {
+            "ok": False,
+            "http_status": None,
+            "value": None,
+            "response_body": None,
+            "error": "invalid property_name",
+        }
+    base = base_url.rstrip("/")
+    q = urllib.parse.urlencode({"objectPath": op, "propertyName": pn})
+    url = f"{base}/remote/object/property?{q}"
+    status, data, err = _http_get(url, timeout)
+    if err or not (200 <= status < 300):
+        return {
+            "ok": False,
+            "http_status": status,
+            "value": None,
+            "response_body": data if isinstance(data, dict) else None,
+            "error": err or f"unexpected status {status}",
+        }
+    val: Any = None
+    if isinstance(data, dict):
+        if "propertyValue" in data:
+            val = data.get("propertyValue")
+        elif "PropertyValue" in data:
+            val = data.get("PropertyValue")
+        elif "value" in data:
+            val = data.get("value")
+        elif "Value" in data:
+            val = data.get("Value")
+    return {
+        "ok": True,
+        "http_status": status,
+        "value": val,
+        "response_body": data if isinstance(data, dict) else None,
+        "error": None,
+    }
+
+
+def set_exposed_property(
+    base_url: str,
+    preset_name: str,
+    object_path: str,
+    property_name: str,
+    value: Any,
+    timeout: float,
+) -> dict[str, Any]:
+    """Set a scalar property on a preset-exposed object via Remote Control PUT.
+
+    ``preset_name`` is accepted for audit symmetry at call sites; it is not sent
+    in the HTTP body (Remote Control addresses the object by ``objectPath``).
     """
-    return _http_request("PUT", url, timeout=timeout, data=body)
+    _ = preset_name  # reserved for coordinator / audit context
+    op = _sanitize_object_path(object_path)
+    pn = _sanitize_property_or_function_name(property_name)
+    if op is None:
+        return {
+            "ok": False,
+            "http_status": None,
+            "response_body": None,
+            "error": "invalid object_path",
+        }
+    if pn is None:
+        return {
+            "ok": False,
+            "http_status": None,
+            "response_body": None,
+            "error": "invalid property_name",
+        }
+    try:
+        body_obj: dict[str, Any] = {
+            "objectPath": op,
+            "propertyName": pn,
+            "propertyValue": value,
+            "generateTransaction": True,
+        }
+        body_bytes = json.dumps(body_obj, separators=(",", ":")).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        return {
+            "ok": False,
+            "http_status": None,
+            "response_body": None,
+            "error": f"propertyValue not JSON-serializable: {exc}",
+        }
+    if len(body_bytes) > _MAX_REQUEST_BODY_BYTES:
+        return {
+            "ok": False,
+            "http_status": None,
+            "response_body": None,
+            "error": "request body exceeds 256KB cap",
+        }
+    base = base_url.rstrip("/")
+    url = f"{base}/remote/object/property"
+    put = _http_put(url, body_bytes, timeout)
+    ok = bool(put.get("ok")) and not _ue_body_errors(put.get("response_body"))
+    err_msg: str | None = put.get("error")
+    if put.get("ok") and _ue_body_errors(put.get("response_body")):
+        err_msg = "Remote Control errors array present in PUT response"
+    elif not ok and not err_msg:
+        err_msg = f"HTTP {put.get('http_status')}"
+    return {
+        "ok": ok,
+        "http_status": put.get("http_status"),
+        "response_body": put.get("response_body"),
+        "error": None if ok else err_msg,
+    }
+
+
+def call_exposed_function(
+    base_url: str,
+    preset_name: str,
+    object_path: str,
+    function_name: str,
+    args: dict[str, Any],
+    timeout: float,
+) -> dict[str, Any]:
+    """Call an exposed UFunction via Remote Control PUT ``/remote/object/call``."""
+    _ = preset_name
+    op = _sanitize_object_path(object_path)
+    fn = _sanitize_property_or_function_name(function_name)
+    if op is None:
+        return {
+            "ok": False,
+            "http_status": None,
+            "response_body": None,
+            "error": "invalid object_path",
+        }
+    if fn is None:
+        return {
+            "ok": False,
+            "http_status": None,
+            "response_body": None,
+            "error": "invalid function_name",
+        }
+    if not isinstance(args, dict):
+        return {
+            "ok": False,
+            "http_status": None,
+            "response_body": None,
+            "error": "parameters must be a dict",
+        }
+    try:
+        body_obj = {
+            "objectPath": op,
+            "functionName": fn,
+            "parameters": args,
+            "generateTransaction": True,
+        }
+        body_bytes = json.dumps(body_obj, separators=(",", ":")).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        return {
+            "ok": False,
+            "http_status": None,
+            "response_body": None,
+            "error": f"parameters not JSON-serializable: {exc}",
+        }
+    if len(body_bytes) > _MAX_REQUEST_BODY_BYTES:
+        return {
+            "ok": False,
+            "http_status": None,
+            "response_body": None,
+            "error": "request body exceeds 256KB cap",
+        }
+    base = base_url.rstrip("/")
+    url = f"{base}/remote/object/call"
+    put = _http_put(url, body_bytes, timeout)
+    ok = bool(put.get("ok")) and not _ue_body_errors(put.get("response_body"))
+    err_msg: str | None = put.get("error")
+    if put.get("ok") and _ue_body_errors(put.get("response_body")):
+        err_msg = "Remote Control errors array present in PUT response"
+    elif not ok and not err_msg:
+        err_msg = f"HTTP {put.get('http_status')}"
+    return {
+        "ok": ok,
+        "http_status": put.get("http_status"),
+        "response_body": put.get("response_body"),
+        "error": None if ok else err_msg,
+    }
 
 
 def _extract_version(data: dict[str, Any] | list[Any] | None) -> str | None:

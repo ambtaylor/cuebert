@@ -12,7 +12,7 @@ This contract answers: **“Which Remote Control operations may run, under which
 **In scope:**
 
 - **`agent-unreal`** coordinator inputs/outputs and **caller × op_kind** policy.  
-- Relationship to **`.cursor/skills/unreal-bridge`** MCP tools (**M5-P1** read-only; **M5-P4** writes).  
+- Relationship to **`.cursor/skills/unreal-bridge`** MCP tools (**M5-P1** read-only probes; **M5-P4** write tools).  
 - **Trace**, **audit**, and **memory** obligations for mutations and violations.
 
 **Out of scope:**
@@ -63,8 +63,8 @@ Capabilities split into **`probe`** (read-only) and **`mutate`** (write). **`pro
 | **`list_presets`** | **`probe`** | **`unreal_list_presets`** | **live** |
 | **`describe_preset`** | **`probe`** | **`unreal_describe_preset`** | **live** |
 | **`ping_actor`** | **`probe`** | **`unreal_ping_actor`** | **live** |
-| **`set_property`** | **`mutate`** | **`unreal_set_property`** (**planned name**) | **spec-only (M5-P4)** |
-| **`call_function`** | **`mutate`** | **`unreal_call_function`** (**planned name**) | **spec-only (M5-P4)** |
+| **`set_property`** | **`mutate`** | **`unreal_set_property`** | **live** (**M5-P4**; supports **`dry_run`**) |
+| **`call_function`** | **`mutate`** | **`unreal_call_function`** | **live** (**M5-P4**; supports **`dry_run`**) |
 
 **Rule:** **`mutate`** rows MUST NOT be executed against **live** HTTP until **M5-P4** ships the tools; **M5-P3** coordinators may still emit **`dry_run`** **`mutation_audit`** previews when documenting harness behavior.
 
@@ -172,6 +172,8 @@ When **`PUT`** succeeds but post-read fails, **`mutation_audit.audit_status`** M
 | **`unreal.validation_failed`** | error | UE rejected values (range/type). | yes — adjust args |
 | **`unreal.timeout`** | error | Exceeded **30 s** cap. | yes — reduce work / retry |
 | **`unreal.unexpected`** | error | Parse failure / internal bug. | rarely — escalate |
+| **`unreal.put_rejected`** | error | UE rejected the Remote Control **PUT** (HTTP **4xx**/**5xx** or **`errors`** array in JSON body). | yes — adjust payload / preset |
+| **`unreal.readback_failed`** | error | **`set_property`** **PUT** succeeded but pre- or post-read (**GET** property) failed (**partial_success** audit path). | yes — manual verify editor state |
 
 ### 4.1 Mapping from HTTP symptoms (informative)
 

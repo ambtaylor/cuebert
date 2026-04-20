@@ -65,6 +65,7 @@ GROUPS: dict[str, GroupSpec] = {
     # Engine group tools are loaded from each skill's tools/*.py (register(mcp)).
     # Unreal bridge (M5-P1): unreal_health_check, unreal_list_presets,
     # unreal_describe_preset, unreal_ping_actor.
+    # Unreal bridge (M5-P4): unreal_set_property, unreal_call_function.
     # All loaded via dynamic discovery from .cursor/skills/unreal-bridge/tools/*.py
     "engine": {
         "include_core": False,

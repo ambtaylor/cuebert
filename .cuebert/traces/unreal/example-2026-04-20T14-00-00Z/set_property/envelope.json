@@ -1,0 +1,30 @@
+{
+  "status": "dry_run",
+  "operation": "mutate",
+  "op_kind": "set_property",
+  "caller": "agent-play-author",
+  "preset_name": "hello_level_preset",
+  "object_path": "/Game/Maps/HelloLevel.HelloLevel:PersistentLevel.PointLight_0",
+  "property_name": "Intensity",
+  "value_from": null,
+  "value_to": 75.0,
+  "base_url": "http://localhost:30010",
+  "mode": "dry_run",
+  "editor_version": "5.4.0-dry_run",
+  "mutation_audit": {
+    "timestamp": "2026-04-20T14:00:00Z",
+    "caller": "agent-play-author",
+    "op_kind": "set_property",
+    "preset": "hello_level_preset",
+    "object_path": "/Game/Maps/HelloLevel.HelloLevel:PersistentLevel.PointLight_0",
+    "property": "Intensity",
+    "from": null,
+    "to": 75.0,
+    "mode": "dry_run",
+    "editor_version": "5.4.0-dry_run",
+    "reversal_hint": "best-effort: set Intensity back to prior value on /Game/Maps/HelloLevel.HelloLevel:PersistentLevel.PointLight_0",
+    "audit_status": "ok"
+  },
+  "error": null,
+  "elapsed_ms": 4
+}

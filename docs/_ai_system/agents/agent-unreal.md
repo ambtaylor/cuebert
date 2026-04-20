@@ -4,7 +4,7 @@
 > **Shortcut:** **None** — `agent-unreal` is **not** Supervisor-routed; it is dispatched by harness coordinators and documented harness subagents only.  
 > **Activation:** Logical coordinator invoked when a harness envelope requests a **single** Remote Control operation (`probe` or `mutate`). This document is the **normative protocol stub** for **M5-P3**; a live harness runner that chains these calls remains **future** wiring.
 
-> **CRITICAL — M5-P3 scope:** This file is **documentation only**. It defines **protocol**, **scope matrices**, **envelopes**, and **memory policy**. It does **not** register a Cursor agent file, spawn Tasks by itself, or implement HTTP clients (those live in **`unreal-bridge`** tools). **Live write MCP tools** (`unreal_set_property`, `unreal_call_function`) are **M5-P4**; **`agent-unreal-mutate.md`** is **SPEC ONLY** until then.
+> **CRITICAL — M5 scope:** This file defines **protocol**, **scope matrices**, **envelopes**, and **memory policy**. HTTP clients live in **`unreal-bridge`** tools (**M5-P1** probes; **M5-P4** writes). **`agent-unreal-mutate.md`** is **live** as of **M5-P4** alongside **`unreal_set_property`** and **`unreal_call_function`** MCP tools.
 
 ---
 
@@ -66,7 +66,7 @@ validate_scope → connect (or dry-run) → execute (probe OR mutate) → normal
 | Subagent | File | Role | Status |
 |----------|------|------|--------|
 | **`agent-unreal-probe`** | `docs/_ai_system/agents/agent-unreal-probe.md` | Read-only HTTP **GET**-backed MCP calls: **`list_presets`**, **`describe_preset`**, **`ping_actor`** | **M5-P3** spec; **live** calls via **`unreal_list_presets`**, **`unreal_describe_preset`**, **`unreal_ping_actor`**, plus **`unreal_health_check`** for connectivity/version |
-| **`agent-unreal-mutate`** | `docs/_ai_system/agents/agent-unreal-mutate.md` | Write HTTP **PUT**-backed operations: **`set_property`**, **`call_function`** | **M5-P3 SPEC ONLY**; MCP tools **`unreal_set_property`**, **`unreal_call_function`** land **M5-P4** |
+| **`agent-unreal-mutate`** | `docs/_ai_system/agents/agent-unreal-mutate.md` | Write HTTP **PUT**-backed operations: **`set_property`**, **`call_function`** | **Live** — MCP tools **`unreal_set_property`**, **`unreal_call_function`** (**M5-P4**) |
 
 **Dispatch pattern:** The **`/play`** or **`/asset`** harness (main chat) treats `agent-unreal` as a **logical coordinator**: one **`generalPurpose`** Task MAY implement both “routing” and probe execution in early milestones, but **mutations** MUST remain behind **`agent-unreal-mutate.md`** rules once writes exist (**M5-P4**).
 
@@ -229,6 +229,8 @@ Stable **`error.code`** values (string API):
 | **`unreal.validation_failed`** | UE rejected mutation (range, type, or Remote Control validation). |
 | **`unreal.timeout`** | Operation exceeded configured cap (**≤ 30 s** hard ceiling). |
 | **`unreal.unexpected`** | Catch-all for parser/internal failures. |
+| **`unreal.put_rejected`** | UE rejected the **PUT** (HTTP error or **`errors`** in JSON body). |
+| **`unreal.readback_failed`** | **`set_property`** write succeeded but property **GET** readback failed (**partial_success** audit). |
 
 ---
 
@@ -312,6 +314,8 @@ Probe operations map **1:1** onto existing **`unreal-bridge`** Python tools unde
 | **`list_presets`** | **`unreal_list_presets`** | **`unreal_list_presets.py`** |
 | **`describe_preset`** | **`unreal_describe_preset`** | **`unreal_describe_preset.py`** |
 | **`ping_actor`** | **`unreal_ping_actor`** | **`unreal_ping_actor.py`** |
+| **`set_property`** | **`unreal_set_property`** | **`unreal_set_property.py`** |
+| **`call_function`** | **`unreal_call_function`** | **`unreal_call_function.py`** |
 
 Shared HTTP client logic lives in **`_unreal_client.py`**. **`agent-unreal`** MUST NOT fork parallel one-off HTTP stacks — always call MCP tools so caps, sanitization, and envelopes stay centralized.
 

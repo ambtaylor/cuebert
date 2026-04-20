@@ -1,0 +1,8 @@
+{
+  "op_kind": "call_function",
+  "caller": "agent-play-preview",
+  "matrix_reference": "docs/_ai_system/agents/agent-unreal.md §6.1",
+  "cell": {"caller": "agent-play-preview", "call_function": true},
+  "allow": true,
+  "reason": "Matrix row allows call_function for agent-play-preview"
+}

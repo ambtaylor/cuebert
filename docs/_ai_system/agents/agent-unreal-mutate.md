@@ -1,16 +1,15 @@
-# UNREAL MUTATE — Scoped Remote Control Writes (SPEC ONLY)
+# UNREAL MUTATE — Scoped Remote Control Writes
 
-> **Role:** `agent-unreal` subagent — **`mutate`** operations (**HTTP PUT** to Remote Control; **MCP tools not shipped in M5-P1**).  
+> **Role:** `agent-unreal` subagent — **`mutate`** operations (**HTTP PUT** to Remote Control via **`unreal_set_property`** and **`unreal_call_function`**).  
+> **Status:** Live via **M5-P4** MCP tools. Scope whitelist is enforced at the **MCP tool layer** (caller constants) and mirrored in **`agent-unreal.md`** §6.1 for harness coordinators.  
 > **Parent protocol:** `docs/_ai_system/agents/agent-unreal.md` — read **§6 (Scope enforcement)**, **§8 (Mutation audit)**, **§13 (Memory hooks)** before executing.  
 > **Dispatch:** Only from the **`agent-unreal`** coordinator invoked under **`/play`** or **`/asset`** harness plans.
-
-> **CRITICAL — M5-P3:** This document is **SPEC ONLY**. **No live `unreal_set_property` or `unreal_call_function` MCP tools exist in M5-P1.** Harnesses MUST NOT assume mutations succeed over HTTP until **M5-P4** lands those tools and wires them here. **Dry-run** mutation acceptance (audit without PUT) is **specified** for coordinators to implement alongside **M5-P4**.
 
 ---
 
 ## 1. Role and scope
 
-You perform **scoped writes** to a running Unreal Editor through Remote Control: **`set_property`** and **`call_function`**. Every mutation is a **single HTTP PUT** in **M5-P4** (no batching).
+You perform **scoped writes** to a running Unreal Editor through Remote Control: **`set_property`** and **`call_function`**. Every mutation is a **single HTTP PUT** in live mode (no batching).
 
 **Whitelist-only:** Writes proceed only when:
 
@@ -36,7 +35,7 @@ You perform **scoped writes** to a running Unreal Editor through Remote Control:
 | **`set_property`** | **`preset_name`**, **`object_path`**, **`property`**, **`value`** | **`value_type`** hint string |
 | **`call_function`** | **`preset_name`**, **`function_name`** | **`arguments`** array (ordered) |
 
-**M5-P3:** shapes are **documentation-only**; MCP tool schemas are the eventual source of truth.
+MCP tool schemas (**`unreal_set_property`**, **`unreal_call_function`**) are the wire-level source of truth for field names (`property_name` vs coordinator prose `property`).
 
 ---
 
@@ -71,22 +70,22 @@ Replicated from **`agent-unreal.md`** §6.1 for mutate columns only:
 
 ## 5. Atomicity
 
-Each **`mutate`** invocation maps to **exactly one** Remote Control **PUT** in **M5-P4**. No multi-PUT transactions: if a harness needs two writes, it issues **two** coordinator calls **serialized**.
+Each **`mutate`** invocation maps to **exactly one** Remote Control **PUT** in live mode. No multi-PUT transactions: if a harness needs two writes, it issues **two** coordinator calls **serialized**.
 
 ---
 
 ## 6. Rollback policy
 
-The bridge **never auto-rolls back**. **`mutation_audit.reversal_hint`** documents a best-effort manual undo string for the **caller** to schedule as a separate op.
+The bridge **never auto-rolls back**. **`mutation_audit.reversal_hint`** documents a best-effort manual undo string for the **`set_property`** path; it is **`null`** for **`call_function`** (caller decides; bridge does not guess).
 
 ---
 
 ## 7. Protocol (ordered)
 
 1. **Validate caller + `op_kind`** against §4 matrix; verify **`allowed_mutations`** covers this op.  
-2. **Pre-mutation read** — perform a **GET**-class describe/ping as needed to capture **`from`** values for audit (**M5-P4**). If pre-read fails → **`error`**, **no write** (abort).  
-3. **Emit HTTP PUT** — **M5-P4** only; **M5-P3** skips this step and jumps to audit policy per §8 examples.  
-4. **Post-mutation read** — confirm new state where feasible; populate **`to`** fields.  
+2. **Pre-mutation read** — for **`set_property`**, perform a **GET** on **`/remote/object/property`** to capture **`from`** values for audit. If pre-read fails, return **`error`**, **no write** (abort).  
+3. **Emit HTTP PUT** — **`unreal_set_property`** / **`unreal_call_function`** delegate to **`_unreal_client`**.  
+4. **Post-mutation read** — for **`set_property`**, confirm new state; populate **`to`** fields.  
 5. **Write `mutation_audit` entry** — append JSON line to **`.cuebert/traces/unreal/<timestamp>/mutations.jsonl`**.  
 6. **`troubleshoot_commit`** — **mandatory** for successful mutate path (including **`dry_run`** acceptance).  
 7. **Emit envelope** — return to harness.
@@ -98,7 +97,7 @@ The bridge **never auto-rolls back**. **`mutation_audit.reversal_hint`** documen
 | **`operation`** is **`mutate`** | Reject at coordinator — wrong subagent routing. |
 | **`scope.preset_name`** required | If **absent** for **`mutate`**, **`unreal.scope_rejected`**. |
 | **`allowed_mutations`** non-empty array | Empty → **`blocked`**. |
-| **`args`** keys match **`op_kind`** schema | **`unreal.validation_failed`** before network (**M5-P4** JSON schema). |
+| **`args`** keys match **`op_kind`** schema | **`unreal.validation_failed`** before network. |
 
 ### 7.2 Postconditions
 
@@ -125,7 +124,9 @@ Same top-level envelope as **`agent-unreal.md`** §12, with:
 
 - **`audit_status`:** **`partial_success`**  
 - **`reversal_hint`:** best-effort string from pre-read snapshot  
-- **`warnings`:** array explaining missing post-state
+- **`warnings`:** array explaining missing post-state (optional)
+
+Canonical tool envelope (**M5-P4**): **`unreal_set_property`** / **`unreal_call_function`** return **`status`**, **`op_kind`**, **`mutation_audit`**, **`error`**, **`elapsed_ms`**, and op-specific fields (`value_from` / `value_to` / `return_value`).
 
 ---
 
@@ -134,13 +135,13 @@ Same top-level envelope as **`agent-unreal.md`** §12, with:
 | Case | Behavior |
 |------|----------|
 | **Scope rejected** | **`blocked`**, **`unreal.scope_rejected`**, **`troubleshoot_commit`** mandatory. |
-| **Pre-mutation read fails** | **`error`**, **no PUT**, no **`mutation_audit`** completion (explain in **`result`** if safe). |
-| **PUT succeeds, post-read fails** | Envelope **`status: error`** or harness-defined **`pass`** with **`audit_status: partial_success`** — pick one canonical spelling in **M5-P4** wire-up; must include **`reversal_hint`**. |
-| **PUT fails** | **`error`** with **`unreal.validation_failed`** or **`unreal.unexpected`**; **no** successful audit row. |
+| **Pre-mutation read fails** | **`error`**, **no PUT**, no completed **`mutation_audit`** (explain in **`error.message`**). |
+| **PUT succeeds, post-read fails** | **`status: error`**, **`error.code: unreal.readback_failed`**, **`mutation_audit.audit_status: partial_success`**, **`reversal_hint`** populated. |
+| **PUT fails or UE `errors` array** | **`error`**, **`unreal.put_rejected`**, no successful audit completion. |
 
 ### 9.1 Ordering guarantees
 
-Failures **before** step 3 (**PUT**) never emit **`mutation_audit`** completion rows — partial pre-read data may still log to **`pre_get.json`** (**M5-P4**).
+Failures **before** step 3 (**PUT**) never emit completed **`mutation_audit`** rows — partial pre-read data may still log to trace sidecars.
 
 ### 9.2 Negative examples (mutate)
 
@@ -148,36 +149,35 @@ Failures **before** step 3 (**PUT**) never emit **`mutation_audit`** completion 
 |----------|--------|
 | **`agent-asset-generate`** attempts **`set_property`** | **`blocked`** — matrix deny. |
 | **`allowed_mutations`** lists **`call_function:Foo`** but op is **`set_property`** | **`blocked`** — token mismatch. |
-| **Live PUT** invoked in **M5-P3** documentation walk-through | **Protocol violation** — tools do not exist yet. |
 
 ---
 
-## 10. Examples (dry_run only — M5-P3)
+## 10. Examples (dry_run)
 
 ### 10.1 `set_property` (synthetic acceptance)
 
 **Request:** **`caller: agent-play-author`**, **`op_kind: set_property`**, **`dry_run: true`**, **`scope.allowed_mutations: ["set_property:Brightness"]`**.
 
-**Outcome:** No HTTP **PUT** in **M5-P3**; envelope returns **`mode: dry_run`**, **`mutation_audit`** shows **`from`/`to`**, **`troubleshoot_commit`** fired.
+**Outcome:** No HTTP **PUT**; envelope returns **`mode: dry_run`**, **`mutation_audit`** shows **`from`/`to`**, **`troubleshoot_commit`** fired.
 
 ### 10.2 `call_function` (synthetic acceptance)
 
 **Request:** **`caller: agent-play-preview`**, **`op_kind: call_function`**, **`dry_run: true`**, **`scope.allowed_mutations: ["call_function:StartPIE"]`**.
 
-**Outcome:** **`mutation_audit`** records function name and args hash; no live editor call in **M5-P3**.
+**Outcome:** **`mutation_audit`** records function name; synthetic **`return_value`**; no live editor **PUT**.
 
 ---
 
-## 11. `allowed_mutations` string grammar (M5-P3 draft)
+## 11. `allowed_mutations` string grammar
 
-Strings are **case-sensitive** unless **M5-P4** explicitly defines normalization:
+Strings are **case-sensitive** unless a later milestone defines normalization:
 
 | Pattern | Meaning |
 |---------|---------|
 | **`set_property:<PropertyName>`** | Author may set **`PropertyName`** on an exposed object path validated against preset metadata. |
 | **`call_function:<FunctionName>`** | Preview/Place may invoke **`FunctionName`** exposed on the preset. |
 
-Harness MAY prefix with namespace **`ue:`** later — **undecided** until **M5-P4**; do not rely on prefixes in **M5-P3** parsers.
+Harness MAY prefix with namespace **`ue:`** later — **undecided** until harness JSON wiring hardens; do not rely on prefixes in parsers today.
 
 ---
 
@@ -203,7 +203,7 @@ Recommended trace layout (**M5-P4**):
   post_get.json
 ```
 
-**M5-P3** requires only the **contract**; filenames are **recommendations**.
+Filenames are **recommendations**; committed worked examples may add **`scope_check/`**, **`memory/`**, and **`guards/`** subtrees (see **`unreal-bridge-sample-run-hello-level.md`**).
 
 ---
 
@@ -213,8 +213,8 @@ Recommended trace layout (**M5-P4**):
 |-----|-----|
 | `agent-unreal.md` | Coordinator + full matrix |
 | `unreal-bridge-contract.md` | Law for scopes, envelopes, errors |
-| `agent-play-preview.md` | Preview consumer of **`call_function`** (**M5-P4**) |
-| `agent-asset-place.md` | Place consumer of reimport **`call_function`** (**M5-P4**) |
+| `agent-play-preview.md` | Preview consumer of **`call_function`** |
+| `agent-asset-place.md` | Place consumer of reimport **`call_function`** |
 
 ---
 
@@ -241,10 +241,10 @@ Recommended trace layout (**M5-P4**):
 
 ## 17. Revision note
 
-**M5-P3** first publication: coordinator + contract + probe live path + mutate **SPEC ONLY**.
+**M5-P4** ships live **`unreal_set_property`** and **`unreal_call_function`** MCP tools, **`_unreal_client`** **PUT** helpers, worked dry-run sample run, and trace fixtures under **`.cuebert/traces/unreal/example-*/`**.
 
 ---
 
-## 18. Footer — SPEC ONLY banner
+## 18. Footer
 
-**M5-P3:** **`agent-unreal-mutate`** is **documentation-only**. **Do not** claim **`unreal_set_property`** / **`unreal_call_function`** MCP tools exist until **M5-P4** ships them. **Live HTTP PUT writes:** **M5-P4**.
+**M5-P4:** **`agent-unreal-mutate`** protocol is **live** with MCP tool backing. Harnesses **must** still pass **`caller`**, **`scope.allowed_mutations`**, and respect **`debug.agent_unreal`** for **`user-direct-debug`** at coordinator ingress per **`agent-unreal.md`**.

@@ -42,7 +42,7 @@ skills:
     status: alpha
 
   - name: unreal-bridge
-    description: Query and control a running Unreal Editor via Epic's Remote Control HTTP API. Use for inspecting presets, describing exposed properties/functions, and (in future phases) driving property sets and function calls.
+    description: Query and control a running Unreal Editor via Epic's Remote Control HTTP API. Use for inspecting presets, describing exposed properties/functions, and for scoped property sets and exposed function calls (live or dry-run).
     keywords:
       - unreal
       - unreal engine
@@ -51,10 +51,18 @@ skills:
       - preset
       - actor
     operations:
-      - unreal_health_check
-      - unreal_list_presets
-      - unreal_describe_preset
-      - unreal_ping_actor
+      - name: unreal_health_check
+        description: Probe Unreal Remote Control HTTP reachability via GET /remote/info (supports dry-run and not_configured semantics).
+      - name: unreal_list_presets
+        description: List Remote Control presets from GET /remote/presets or dry-run fixtures.
+      - name: unreal_describe_preset
+        description: Describe a preset's exposed properties and callable functions (GET /remote/preset/<name>).
+      - name: unreal_ping_actor
+        description: Read-only check that an actor label is exposed under a preset (GET expose/actor path).
+      - name: unreal_set_property
+        description: Set a scalar property on a preset-exposed object (PUT /remote/object/property; scope whitelist; audit + memory hooks).
+      - name: unreal_call_function
+        description: Invoke an exposed UFunction on a preset-exposed object (PUT /remote/object/call; scope whitelist; audit + memory hooks).
     skill_path: .cursor/skills/unreal-bridge/SKILL.md
     mcp_group: engine
     status: alpha

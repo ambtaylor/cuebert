@@ -1,0 +1,20 @@
+{
+  "guard": {
+    "audit": {
+      "persisted": [
+        {
+          "guard_id": "guard.audit.persisted",
+          "op_kind": "set_property",
+          "mutations_jsonl": true,
+          "verdict": "pass"
+        },
+        {
+          "guard_id": "guard.audit.persisted",
+          "op_kind": "call_function",
+          "mutations_jsonl": true,
+          "verdict": "pass"
+        }
+      ]
+    }
+  }
+}

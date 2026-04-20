@@ -1,0 +1,17 @@
+{
+  "protocol_version": "1.0",
+  "status": "dry_run",
+  "scenario": "hello_level_lighting_and_pie_preview",
+  "trace_dir": ".cuebert/traces/unreal/example-2026-04-20T14-00-00Z/",
+  "operations": [
+    {"op_kind": "set_property", "tool": "unreal_set_property", "order": 1},
+    {"op_kind": "call_function", "tool": "unreal_call_function", "order": 2}
+  ],
+  "mode": "dry_run",
+  "base_url": "http://localhost:30010",
+  "editor_version": "5.4.0-dry_run",
+  "mutation_count": 2,
+  "memory_commits": 2,
+  "completed_at": "2026-04-20T14:00:10Z",
+  "findings": []
+}

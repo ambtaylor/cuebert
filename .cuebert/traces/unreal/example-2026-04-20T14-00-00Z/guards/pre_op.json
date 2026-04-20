@@ -1,0 +1,22 @@
+{
+  "guard": {
+    "scope": {
+      "whitelist": [
+        {
+          "guard_id": "guard.scope.whitelist",
+          "operation": "mutate",
+          "op_kind": "set_property",
+          "caller": "agent-play-author",
+          "verdict": "pass"
+        },
+        {
+          "guard_id": "guard.scope.whitelist",
+          "operation": "mutate",
+          "op_kind": "call_function",
+          "caller": "agent-play-preview",
+          "verdict": "pass"
+        }
+      ]
+    }
+  }
+}

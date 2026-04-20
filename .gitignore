@@ -56,6 +56,11 @@ Thumbs.db
 .cuebert/traces/asset/*
 !.cuebert/traces/asset/example-*/
 !.cuebert/traces/asset/example-*/**
+# Unreal bridge sample trace (M5-P4 worked example) — keep in git
+!.cuebert/traces/unreal/
+.cuebert/traces/unreal/*
+!.cuebert/traces/unreal/example-*/
+!.cuebert/traces/unreal/example-*/**
 .cuebert/credentials.local.json
 
 # Secrets (belt and suspenders; vault is the real mechanism)

@@ -1,0 +1,67 @@
+{
+  "Preset": {
+    "Name": "hello_level_preset",
+    "ID": "E91F6B2C-1234-5678-ABCD-EF0123456789",
+    "Path": "/Game/Presets/hello_level_preset.hello_level_preset"
+  },
+  "ExposedProperties": [
+    {
+      "ObjectPath": "/Game/Maps/HelloLevel.HelloLevel:PersistentLevel.PointLight_0",
+      "PropertyName": "Intensity",
+      "DisplayName": "Hero Light Intensity",
+      "ExposedName": "hero_light_intensity",
+      "Type": "float",
+      "Metadata": { "UIMin": "0", "UIMax": "100" }
+    },
+    {
+      "ObjectPath": "/Game/Maps/HelloLevel.HelloLevel:PersistentLevel.SunLight_0",
+      "PropertyName": "LightColor",
+      "DisplayName": "Sun Color",
+      "ExposedName": "sun_color",
+      "Type": "FLinearColor",
+      "Metadata": {}
+    },
+    {
+      "ObjectPath": "/Game/Maps/HelloLevel.HelloLevel:PersistentLevel.SkyLight_0",
+      "PropertyName": "Intensity",
+      "DisplayName": "Sky Fill Intensity",
+      "ExposedName": "sky_fill_intensity",
+      "Type": "float",
+      "Metadata": { "UIMin": "0", "UIMax": "20" }
+    },
+    {
+      "ObjectPath": "/Game/Maps/HelloLevel.HelloLevel:PersistentLevel.PostProcessVolume_0",
+      "PropertyName": "BlendWeight",
+      "DisplayName": "Post Process Blend",
+      "ExposedName": "post_blend_weight",
+      "Type": "float",
+      "Metadata": {}
+    },
+    {
+      "ObjectPath": "/Game/Maps/HelloLevel.HelloLevel:PersistentLevel.DirectionalLight_0",
+      "PropertyName": "Temperature",
+      "DisplayName": "Key Light Temperature",
+      "ExposedName": "key_temperature",
+      "Type": "float",
+      "Metadata": { "UIMin": "1500", "UIMax": "12000" }
+    }
+  ],
+  "ExposedFunctions": [
+    {
+      "ObjectPath": "/Game/Blueprints/BP_PIEController.BP_PIEController_C",
+      "FunctionName": "StartPIE",
+      "DisplayName": "Start PIE",
+      "ExposedName": "start_pie",
+      "ArgumentTypes": [],
+      "ReturnType": "bool"
+    },
+    {
+      "ObjectPath": "/Game/Blueprints/BP_AssetManager.BP_AssetManager_C",
+      "FunctionName": "ReimportAsset",
+      "DisplayName": "Reimport Asset",
+      "ExposedName": "reimport_asset",
+      "ArgumentTypes": ["FString"],
+      "ReturnType": "bool"
+    }
+  ]
+}
