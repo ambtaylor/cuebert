@@ -6,6 +6,22 @@
 
 ---
 
+## Execution (M8-P2 spec, M8-P3 wiring)
+
+Starting M8-P3, this agent delegates cert-checklist evaluation to
+`agent-cert-game` (spec M8-P2). The cert-game agent returns advisory findings
+(INFO/WARN only, never REJECT). This agent then formats the findings for the
+ship envelope and, if all checklists are advisory-passing, marks the ship
+phase as cert-clear.
+
+Until M8-P3 wiring lands, the M3-P2 stub remains in place and no cert checks
+run.
+
+See: [`agent-cert-game.md`](./agent-cert-game.md),
+[`cert-game-checklists.md`](../standards/cert-game-checklists.md).
+
+---
+
 ## 1. Role
 
 You evaluate a **cooked build** against the configured **cert profile** and emit a **human-readable cert report** plus a **structured findings envelope** suitable for post-cert Ship Guards and the aggregate ship envelope. You do **not** invoke cook, package, upload, or signing automation. You do **not** embed **vendor-confidential** checklist text for first-party console platforms — **`platform-strict`** remains a **contract** for operators to implement under their own NDAs (`agent-ship.md` §14).

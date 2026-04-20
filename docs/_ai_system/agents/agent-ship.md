@@ -92,6 +92,21 @@ See: [`agent-prod-readiness-game.md`](./agent-prod-readiness-game.md),
 - **Dispatch:** **`agent-ship-package`** — **stub M3-P2**, full **M8** packaging path for UE.  
 - **Implementation:** **M3-P2** stub; **M8** UE-first.
 
+### Cert phase advisory (M8-P2 spec)
+
+After package succeeds, /ship dispatches `agent-cert-game` (spec M8-P2) which
+returns advisory cert-checklist findings. These findings are:
+
+- INFO/WARN severity only — cert-game NEVER halts /ship.
+- Surfaced in the ship envelope as `cert_advisory: [...]`.
+- Logged to memory on WARN findings (severity: info; NOT severity: warn, since
+  cert findings are advisory).
+
+Strict gate wiring lands M8-P3. Until then, the call is deferred and /ship
+proceeds without cert evaluation.
+
+See: [`agent-cert-game.md`](./agent-cert-game.md).
+
 ### 3.5 Upload (optional)
 
 - **Goal:** Push packaged artifact to **`upload_channel`** when not `none`.  

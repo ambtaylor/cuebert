@@ -1,0 +1,67 @@
+# cuebert cert-game default configuration (M8-P2)
+# Per-project overrides go in <project_path>/.cuebert/cert.yaml
+
+version: 1
+
+checklists:
+  metadata.app_icon_present:
+    status: on
+    severity: warn
+  metadata.store_icon_resolutions:
+    status: on
+    severity: warn
+    applies_to:
+      target_store: [steam, epic, gog]
+  metadata.game_description_set:
+    status: on
+    severity: info
+  metadata.screenshots_included:
+    status: on
+    severity: warn
+    applies_to:
+      target_store: [steam, epic, gog]
+  content_rating.declared:
+    status: on
+    severity: warn
+    applies_to:
+      target_store: [steam, epic]
+  save_game.cloud_save_configured:
+    status: on
+    severity: info
+    applies_to:
+      target_store: [steam]
+  networking.offline_first:
+    status: on
+    severity: info
+  input.controller_support_declared:
+    status: on
+    severity: info
+  localization.supported_languages_listed:
+    status: on
+    severity: info
+  legal.eula_present:
+    status: on
+    severity: warn
+    applies_to:
+      target_store: [steam, epic, gog, itchio]
+  legal.privacy_policy_present:
+    status: on
+    severity: warn
+  legal.third_party_licenses_bundled:
+    status: on
+    severity: warn
+
+# Dispatcher allowlist (agent §6 scope matrix).
+scope:
+  agent-ship-cert:
+    required: true
+  agent-ship-package:
+    required: false
+  user-direct-debug:
+    required: false
+  agent-play-qa:
+    required: false
+    allowed: false
+
+spec_only_as_info: true    # M8-P2: findings non-blocking. M8-P3 flip stays non-blocking (cert-game is always advisory).
+advisory_always: true      # Cert-game findings NEVER block. Flag present to make this contract explicit.

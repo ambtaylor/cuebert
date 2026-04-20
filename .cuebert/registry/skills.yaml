@@ -124,4 +124,5 @@ skills:
 # M7-P1 agent-qa-resilience-game (spec, enforced via ship guard M7-P3).
 # M7-P2 agent-prod-readiness-game (spec, enforced via ship guard M7-P3).
 # M8-P1 agent-cook-package-game (spec, dispatches unreal-build MCP tools).
-# Once rule engines ship for M7 agents, each will be listed here as proper skills.
+# M8-P2 agent-cert-game (spec, advisory-only INFO/WARN checklist scanner).
+# Rule engines for M7 + M8-P1 + M8-P2 agents ship as proper skills in follow-up work.
