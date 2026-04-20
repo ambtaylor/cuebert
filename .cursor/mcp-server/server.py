@@ -64,7 +64,7 @@ GROUPS: dict[str, GroupSpec] = {
     # comfyui_list_workflows, comfyui_asset_status.
     "asset": {
         "include_core": False,
-        "skills": ["comfyui-toolkit", "asset-manifest-toolkit"],
+        "skills": ["comfyui-toolkit", "asset-manifest-toolkit", "asset-guards"],
     },
     # Engine group tools are loaded from each skill's tools/*.py (register(mcp)).
     # Unreal bridge (M5-P1): unreal_health_check, unreal_list_presets,
@@ -90,6 +90,9 @@ GROUPS: dict[str, GroupSpec] = {
             # M10-P2: qa-resilience-game, prod-readiness-game rule engines
             "qa-resilience-game",
             "prod-readiness-game",
+            # M10-P4: harness guard evaluators (/play, /ship)
+            "play-guards",
+            "ship-guards",
         ],
     },
 }
