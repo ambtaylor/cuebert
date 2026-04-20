@@ -10,6 +10,7 @@
 #   - comfyui-toolkit      (M4-P1)  asset group
 #   - asset-manifest-toolkit (M4-P2) asset group
 #   - unreal-bridge        (M5-P1)  engine group
+#   - unreal-build         (M6-P1)  engine group
 #   - git-lfs-toolkit      (M5-P2)  engine group
 #   - gauntlet-toolkit     (M6-P2)  qa group
 #   - vision-qa-toolkit    (M6-P3)  qa group
@@ -64,6 +65,25 @@ skills:
       - name: unreal_call_function
         description: Invoke an exposed UFunction on a preset-exposed object (PUT /remote/object/call; scope whitelist; audit + memory hooks).
     skill_path: .cursor/skills/unreal-bridge/SKILL.md
+    mcp_group: engine
+    status: alpha
+
+  - name: unreal-build
+    description: Invoke Unreal Engine's command-line build pipeline (UBT, UAT, commandlets) from cuebert harnesses. Complements unreal-bridge for non-interactive builds.
+    skill_path: .cursor/skills/unreal-build/SKILL.md
+    keywords:
+      - unreal
+      - build
+      - compile
+      - UBT
+      - UAT
+      - commandlet
+      - ue5
+    operations:
+      - unreal_build_status
+      - unreal_build_target
+      - unreal_run_commandlet
+      - unreal_tail_log
     mcp_group: engine
     status: alpha
 
