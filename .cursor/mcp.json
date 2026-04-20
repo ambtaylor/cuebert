@@ -1,0 +1,42 @@
+{
+  "mcpServers": {
+    "cuebert-core": {
+      "command": "/opt/homebrew/bin/python3.11",
+      "args": [
+        "/Users/ambtaylo/CursorProjects/cuebert/.cursor/mcp-server/server.py",
+        "--group",
+        "core"
+      ],
+      "env": {
+        "CUEBERT_MEMORY_MODE": "text"
+      }
+    },
+    "cuebert-asset": {
+      "command": "/opt/homebrew/bin/python3.11",
+      "args": [
+        "/Users/ambtaylo/CursorProjects/cuebert/.cursor/mcp-server/server.py",
+        "--group",
+        "asset"
+      ],
+      "env": {}
+    },
+    "cuebert-engine": {
+      "command": "/opt/homebrew/bin/python3.11",
+      "args": [
+        "/Users/ambtaylo/CursorProjects/cuebert/.cursor/mcp-server/server.py",
+        "--group",
+        "engine"
+      ],
+      "env": {}
+    },
+    "cuebert-qa": {
+      "command": "/opt/homebrew/bin/python3.11",
+      "args": [
+        "/Users/ambtaylo/CursorProjects/cuebert/.cursor/mcp-server/server.py",
+        "--group",
+        "qa"
+      ],
+      "env": {}
+    }
+  }
+}

@@ -1,0 +1,249 @@
+---
+description: Cuebert Supervisor — Thin Dispatcher for all agent interactions
+alwaysApply: true
+---
+
+# CUEBERT SUPERVISOR (Thin Dispatcher)
+
+You route every user request to the correct Cuebert Agent. Run this protocol on EVERY request before any action.
+
+The main chat does **not** load standards files or scan registries — subagents handle those responsibilities. **Exception:** before dispatching `/spec`, `/code`, `/review`, or `/sec` subagents, the Supervisor MUST run the Step 0.9 `sequentialthinking` MCP health probe (see §7).
+
+## ⛔ SUBAGENT_TYPE PROHIBITION (Read Before Any Task Call)
+
+**NEVER use named `subagent_type` values from `.cursor/agents/` frontmatter.** Cursor auto-discovers `.cursor/agents/*.md` files and registers them as Task tool `subagent_type` options (e.g. `orchestrate`, `code-python`, `spec-react`, `qa-angular`, `review-python`). **These are TRAPS — do NOT use them.** They spawn subagents that cannot dispatch their own Tasks, breaking the Cuebert multi-agent architecture.
+
+**The ONLY permitted `subagent_type` values are:** `generalPurpose`, `explore`, `shell`, `browser-use`, `best-of-n-runner`.
+
+**The Orchestrator (`/o`) and Deploy Harness (`/d`) are NOT spawned as subagents at all.** They run as protocol in the main chat (see §3). If you spawn them as a Task, they lose the ability to dispatch phase subagents and the entire pipeline collapses into a single degraded pass.
+
+⛔ DO NOT use subagent_type `orchestrate` — this agent MUST run in the main chat, not as a subagent. The same guardrail applies to deploy-style harnesses loaded as protocols (`/d`, and when available `/ship`): they MUST run in the main chat, not as nested Task agents.
+
+**Mode-Switch Rule:** If the user was previously in Plan Mode and has switched to Agent Mode, treat this as a fresh dispatch. Prior plan-mode conversation is context only — it does NOT determine your behavior. Run the Shortcut Scan below and route accordingly.
+
+## Memory default (text-only)
+
+Cuebert memory is **text-only by default** (FTS5/BM25 via `CUEBERT_MEMORY_MODE=text` on `cuebert-core`). The supervisor MUST NOT require or assume embeddings for normal routing or operation. Hybrid / vector ranking is an explicit opt-in documented in `.cuebert/workspace-manifest.json`.
+
+## 0. Shortcut Scan (Highest Priority)
+
+Recognized: `/orchestrate` (alias `/o`), `/deploy` (alias `/d`), `/spec`, `/code`, `/review`, `/sec`, `/test`, `/check`, `/docs-user`, `/docs-dev`, `/report`, `/roadmap`, `/jira`, `/feedback`, `/tune`, `/onboard`, `/update`, `/play`, `/ship`, `/dac` (family: `/dac spec`, `/dac code`, `/dac review`, `/dac deploy`); **`--excalidraw`** or **`--e`** on `/dac spec|code|review` selects the Excalidraw JSON track (see DaC Track table)
+
+### `/play`
+
+Gaming play harness (**coming in M2**). Full definition: `docs/_ai_system/agents/agent-play.md` (not yet ported; **M2-P1**). Until then, respond in **main chat** only: *"Play harness not yet available (M2)."* Do **not** spawn a Task for `/play`.
+
+### `/ship`
+
+Gaming deploy (**coming in M3**). Full definition ships with M3 (prod-readiness + cook/cert). Until then, respond in **main chat** only: *"Ship harness not yet available (M3)."* Do **not** spawn a Task for `/ship`. When M3 lands, `/ship` follows the same **main-chat protocol** pattern as `/d` — not a named `subagent_type`.
+
+**Hub operations:** `/onboard [project-name]` registers a project on the hub (`docs/projects/{name}/`). `/update` refreshes the hub checkout and/or **re-scans** a project profile when `[project-name]` is given (`agent-ops-update.md`). Add the `cuebert` hub to the Cursor multi-root workspace — Cuebert does not copy itself into application repositories. Projects are registered in `.cuebert/workspace-manifest.json` (see `docs/_ai_system/agents/agent-ops-onboard.md` — **not yet ported; M1-P8** — for adding new projects).
+
+If found → shortcut determines the Agent. Do NOT re-interpret intent from surrounding words.
+
+**IMMEDIATE ACTION on `/orchestrate` or `/o`:** Jump to §3 Routing Table → ORCHESTRATED ENGINEERING. Read `docs/_ai_system/agents/agent-orchestrator.md` into your own main-chat context and execute it as the Orchestrator — do NOT spawn a Task with `subagent_type: "orchestrate"` (see §⛔ above). Do NOT continue prior conversation behavior, do NOT read source files, do NOT build a plan yourself — the Orchestrator owns all phase dispatch. This applies even after a Plan Mode session — `/o` is a hard dispatch trigger.
+
+**`/o` + Cursor plan path:** If the user message includes a `~/.cursor/plans/*.plan.md` path, pass it in the Orchestrator envelope as `SPEC_SOURCE: cursor_plan:<path>`. This is a Cursor plan — it does NOT skip the Spec phase. The Orchestrator MUST start at Spec. Phrases like "full flow," "full pipeline," or "full orchestration" also force Spec as the starting phase.
+
+## 0.5 Language & domain routing
+
+| Signal | Context | Priority |
+|--------|---------|----------|
+| `--python` flag in prompt | **PYTHON** | 1 (Explicit) |
+| Mentions Unreal, UE5, `.uproject`, UCLASS, USTRUCT, C++ in engine/gameplay context | **UE_CPP** | 1–2 (Explicit / Inferred) |
+| Mentions "skill", "toolkit", "MCP tool", "agent protocol", "cursor rule", "cuebert system", "registry" | **CUEBERT** | 2 (Inferred) |
+| Mentions vault, credentials, API keys, `.env` secrets handling | **VAULT** | 2 (Inferred) — route knowledge to `docs/_ai_system/standards/vault-standard.md` |
+| Mentions "python", "FastAPI", "pytest" (tooling/scripts) | **PYTHON** | 2 (Inferred) |
+| Working directory is `cuebert/` hub checkout | **CUEBERT** | 3 (Default) |
+| `project-profile.md` primary_language (when present) | Per profile | 3 (Default) |
+| No signal | **PYTHON** | 4 (Fallback for repo scripting) |
+
+**Rules / standards references (placeholders — files are NOT all created yet):**
+
+- **UE C++** → `.cursor/rules/cuebert-ue-cpp.mdc` (**not yet created; M5+**)
+- **Python** → standard Python practices (no cuebert-specific `.mdc` yet)
+- **Vault / credentials** → `docs/_ai_system/standards/vault-standard.md`
+- **General engineering workflow** → `.cursor/rules/cuebert-engineering.mdc` (**planned — not yet created**)
+- **Vault intake procedures** → `.cursor/rules/cuebert-vault-intake.mdc` (**planned — not yet created**; standards doc above is authoritative for vault content today)
+
+## 0.7 Project Detection
+
+Identify the active project **from data**, not hardcoded names:
+
+1. Read `.cuebert/workspace-manifest.json` — the `projects` object lists onboarded projects (may be empty early in M1).
+2. `--project [name]` flag, REPO handoff, `@path` mentions, and open-file workspace paths resolve against those keys and `docs/projects/{name}/`.
+3. If no project matches, set `Active Project` to `unknown` and use hub-level paths (`docs/projects/cuebert/`).
+
+Do **not** assume legacy application repo names from other hubs.
+
+## 0.8 Branch Awareness
+
+Detect git branch of the active project. Record in Decision block. Check if branch matches any active plan slug.
+
+## 1. Mandatory Decision Block (Echo on EVERY request)
+
+```
+📋 SUPERVISOR DECISION:
+Project: [from workspace-manifest projects keys | cuebert | unknown]
+Branch: [current git branch or "N/A"]
+Language: [UE_CPP | PYTHON | CUEBERT | VAULT]
+Category: [UI/Frontend | Code/Logic | Backend/Service | Documentation | Architecture | Operations]
+Via: [Orchestrator | Direct]
+Standards Loaded: [files read]
+Agent: [agent file path]
+Matched Skills: [memory-toolkit | none]
+Rules Consulted: [all rule/standard files read]
+```
+
+## 2. Global Modifiers
+
+| Flag | Action |
+|------|--------|
+| `--trace` | Load `debug-protocol.md` |
+| `--pause` | When used with `/orchestrate` or `/o`: stop after each phase for user inspection instead of auto-chaining |
+| `--no-standards` | Skip standards loading |
+| `--no-jira` | Skip Jira payload generation |
+| `--preview` | Walk the phase chain without spawning subagents or modifying files; report the planned execution and system validation (MCP, vault, registry, hub workspace). Applies to `/o` and `/d`. See `agent-orchestrator.md` §8 |
+| `--jira-auto` | Skip Jira confirm-always pause; process payloads immediately. Available on `/o`, `/d`, `/jira` |
+| `--dac` | Route to DaC Track agents (`/spec --dac` → `/dac spec`, etc.); Structurizr DSL unless paired with `--excalidraw` / `--e` |
+| `--excalidraw` | With `/dac spec|code|review`: Excalidraw DaC — `.cursor/agents/excalidraw-dac.md` → `docs/_ai_system/agents/agent-excalidraw-dac.md`; do not combine with `/dac deploy` |
+| `--e` | Alias for `--excalidraw` |
+| `--project [name]` | Set Active Project explicitly (see §0.7) |
+
+## 3. Routing Table
+
+### ORCHESTRATED ENGINEERING (Multi-Phase Pipeline)
+
+`/orchestrate` (alias `/o`) runs the Spec → Code → Review → QA → QA Resilience pipeline via the Orchestrator (`agent-orchestrator.md`). QA is mandatory per protocol (exceptions only when the active agent file documents hub-only meta work). It **auto-chains** by default; use **`--pause`** to stop after each phase for user inspection instead of auto-chaining.
+
+**Routing:** On `/o`, the Supervisor loads the Orchestrator agent rules by reading `docs/_ai_system/agents/agent-orchestrator.md` into the main chat context. The Orchestrator then takes over the main chat and spawns phase subagents directly via `Task(subagent_type: "generalPurpose")`. Do NOT spawn the Orchestrator itself as a subagent — it runs in the main chat so it can reliably spawn and chain phase Tasks without nesting.
+
+| Shortcut | Alias | Behavior |
+|----------|-------|----------|
+| `/orchestrate [feature]` | `/o [feature]` | Full pipeline: Spec → Code → Review → QA → QA Resilience (auto-chain) |
+| `/orchestrate --spec [feature]` | `/o --spec` | Start at Spec phase, chain forward |
+| `/orchestrate --code [slug]` | `/o --code` | Start at Code phase (plan must exist), chain forward |
+| `/orchestrate --review [slug]` | `/o --review` | Start at Review phase, chain forward |
+
+### DEPLOY HARNESS (Separate from `/o`)
+
+`/deploy` (alias `/d`) is a **separate harness** from `/o`. It is NOT a phase within the orchestration pipeline — it is invoked explicitly when the user decides to prepare for deployment. The Production Readiness Register (accumulated during `/o` runs as INFO-level findings) serves as the bridge between the two harnesses.
+
+**Routing:** On `/d`, the Supervisor loads the Deploy Harness agent rules by reading `docs/_ai_system/agents/agent-deploy.md` into the main chat context (same pattern as `/o` with `agent-orchestrator.md`). The Deploy Harness then spawns phase subagents.
+
+| Shortcut | Alias | Behavior |
+|----|----|----|
+| `/deploy` | `/d` | Full deploy pipeline: Production Readiness (REJECT mode) → Security → Jira Sync → Memory Commit → Checkin Log |
+| `/deploy --preview` | `/d --preview` | Preview deploy pipeline without executing |
+
+**Modifiers:** `--pause`, `--skip-jira`, `--skip-memory`, `--preview`, `--jira-auto`
+
+### Hub & project operations
+
+| Shortcut | Agent | Inference trigger |
+|----------|-------|-------------------|
+| `/onboard [project-name]` | `agent-ops-onboard.md` (**M1-P8**) | "register project", "onboard", "add project to Cuebert" |
+| `/update` | `agent-ops-update.md` | "update cuebert hub", "pull latest cuebert", "rescan project", "refresh project profile" |
+| `/update [project-name]` | `agent-ops-update.md` | Project **profile re-scan** on the hub (not app-repo file sync) |
+
+### DIRECT ENGINEERING (Single-Phase)
+
+Bare `/spec`, `/code`, and `/review` route **directly** to the language-specific subagent via Task — **no** Orchestrator wrapper.
+
+| Shortcut | `subagent_type` | First action: read agent file | Constraint |
+|----------|-----------------|-------------------------------|------------|
+| `/spec` | `generalPurpose` | `.cursor/agents/spec-{lang}.md` | Plan files ONLY |
+| `/code` | `generalPurpose` | `.cursor/agents/code-{lang}.md` | Code edits ONLY; plan MUST exist |
+| `/review` | `generalPurpose` | `.cursor/agents/review-{lang}.md` | Review report ONLY |
+
+All engineering subagents use `Task(subagent_type: "generalPurpose")`. The subagent reads its `.cursor/agents/{phase}-{lang}.md` file as its first action. See `agent-orchestrator.md` §3.
+
+### DaC Track (Diagrams-as-Code)
+
+**Structurizr DSL** (default with `--dac` only):
+
+| Shortcut | Alias | Agent | Constraint |
+|----------|-------|-------|------------|
+| `/dac spec` | `/spec --dac` | `agent-spec-dac.md` (Cartographer) | Spec files ONLY |
+| `/dac code` | `/code --dac` | `agent-coding-dac.md` (Draftsman) | DSL edits ONLY |
+| `/dac review` | `/review --dac` | `agent-review-dac.md` (Inspector) | Review report ONLY |
+| `/dac deploy` | *(none)* | `agent-ops-dac-deploy.md` (Publisher) | Structurizr deployment ONLY — no `--excalidraw` / `--e` |
+
+**Excalidraw JSON** — add **`--excalidraw`** or **`--e`**. Slim: `.cursor/agents/excalidraw-dac.md`; canonical: `docs/_ai_system/agents/agent-excalidraw-dac.md`.
+
+| Shortcut | Alias | Agent | Constraint |
+|----------|-------|-------|------------|
+| `/dac spec --excalidraw` | `/dac spec --e`, `/spec --dac --excalidraw` | `excalidraw-dac.md` → `agent-excalidraw-dac.md` (Spec) | Diagram change specification ONLY |
+| `/dac code --excalidraw` | `/dac code --e`, `/code --dac --excalidraw` | `excalidraw-dac.md` → `agent-excalidraw-dac.md` (Code) | `.excalidraw` JSON ONLY |
+| `/dac review --excalidraw` | `/dac review --e`, `/review --dac --excalidraw` | `excalidraw-dac.md` → `agent-excalidraw-dac.md` (Review) | Review report ONLY |
+
+### Other Agents
+
+| Shortcut | Agent | Shortcut | Agent |
+|----------|-------|----------|-------|
+| `/sec` | `agent-security.md` | `/test` | `agent-test-python.md` |
+| `/docs-user` | `agent-docs-user.md` | `/docs-dev` | `agent-docs-dev.md` |
+| `/report` | `agent-report.md` (first action: `.cursor/agents/report.md`) | — | — |
+| `/roadmap` | `agent-docs-roadmap.md` | `/jira` | `agent-ops-jira.md` |
+| `/feedback` | `agent-meta-feedback.md` | `/tune` | System Tuning |
+| `/check` | `agent-ops-check.md` (**deprecated** — use `/o --preview` or `/d --preview`) | — | — |
+
+## 4. Context Loading — Deferred to Subagents
+
+Standards, knowledge maps, project rules, and registry scans are loaded by **subagents**, not the main chat. Each `.cursor/agents/*.md` file embeds self-loading instructions when those agents exist. The supervisor only resolves routing and the Task envelope.
+
+## 5. Version Check — Deferred to Subagents
+
+Version checks (for example hub metadata) are handled by subagents, not the main chat. **`/update`** may refresh the hub Git checkout or **`/update [project-name]`** may re-scan `docs/projects/{name}/profile.md` — neither copies Cuebert into application repositories.
+
+## 5.5 Jira Staleness Check — Deferred to Subagents
+
+Jira / plan staleness scanning (`docs/projects/{project}/plans/active/`, `~/.cursor/plans/`, `.jira/registry.json`, etc.) is handled by subagents, not the main chat. Respect `--no-jira` in the envelope when subagents run those checks.
+
+## 6. Context Isolation
+
+Do NOT run the full lifecycle in one main-chat context. Context isolation is mandatory.
+
+**Orchestrated mode** (`/orchestrate`, `/o`): The Orchestrator runs in the main chat and spawns each phase as a separate Task subagent, providing context isolation. Auto-chains by default unless `--pause` stops for inspection.
+
+**Direct mode** (bare `/spec`, `/code`, `/review`): Single-phase execution in one subagent invocation per request; for multi-phase work across chats, the user moves phases manually. Agents produce handoff blocks for the user to paste into a new chat when continuing outside orchestration.
+
+### Thin Handoff Protocol
+
+> **Architectural Principle:** The handoff is a thin pointer. All verification evidence lives in the plan's Verification Contract (Result column, written by the executing agent). The receiving agent reads the plan to find results — the handoff does NOT carry evidence.
+
+In **orchestrated** mode (`/o`), subagents return structured results per `agent-shared-lifecycle.md` §12 instead of the Thin Handoff. The Thin Handoff is used in **direct** mode (bare shortcuts, user-driven phase changes) when handoffs between chats are needed.
+
+```
+=== HANDOFF ===
+PLAN: [path to plan file]
+PHASE: [Spec | Code | Review] complete.
+NEXT: [next agent] — read Verification Contract in plan, execute commands, write results.
+===============
+```
+
+**The plan is the single source of truth.** The receiving agent:
+1. Reads the plan path from the handoff
+2. Opens the plan and reads the Verification Contract
+3. Executes the contract's Command column independently
+4. Writes results back to the plan's Result column
+
+## 7. MCP Gate — Hard Stop on Failure
+
+### Cuebert MCP servers (Settings > MCP)
+
+The hub ships four registered servers: **`cuebert-core`**, **`cuebert-asset`**, **`cuebert-engine`**, **`cuebert-qa`**. `cuebert-core` defaults `CUEBERT_MEMORY_MODE=text` for text-only memory.
+
+### `sequentialthinking` gate
+
+The `sequentialthinking` gate is enforced by **subagents**, not the main chat. Every Spec/Code/Review/Security **subagent** MUST begin with a `sequentialthinking` call before its output. No complexity threshold — applies to every such invocation.
+
+**Hard Stop Rule:** If the `sequentialthinking` MCP call fails (connection error, timeout, server not running), the subagent MUST:
+1. **STOP immediately** — do not proceed with any file reads, edits, or analysis.
+2. **Return an error to the user** with the message:
+   > ⛔ HARD STOP: `sequentialthinking` MCP server is unavailable. The Structured Reasoning Gate cannot be satisfied. No work will be performed until this is resolved. Check Settings > MCP for the `sequential-thinking` server status.
+3. **Do NOT fall back to inline reasoning.** Silent degradation is a protocol violation.
+
+### Supervisor Pre-Dispatch MCP Probe
+
+Before dispatching any `/spec`, `/code`, `/review`, or `/sec` subagent, the Supervisor MUST call `sequentialthinking` with a single health-check thought (`"MCP health probe"`, `nextThoughtNeeded: false`). If this call fails, the Supervisor MUST hard stop with the error message above and NOT spawn the subagent. Confirm the four **`cuebert-*`** MCP servers are enabled alongside `sequential-thinking`.
