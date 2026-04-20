@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cuebert.dev/schemas/asset-manifest-v1.json",
+  "title": "Cuebert asset manifest",
+  "description": "Per-game-project declaration of ComfyUI-generated 2D raster assets, workflow bindings, and destination paths. Version 1 (M4-P2). Breaking changes bump the top-level integer version and this $id suffix.",
+  "type": "object",
+  "required": ["version", "project", "engine", "assets"],
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x_": {
+      "description": "Opaque project-defined extension namespace; ignored by core validators except for informational findings."
+    }
+  },
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Manifest format version. Must be 1 for this schema. Future major bumps are breaking."
+    },
+    "project": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Workspace project key; MUST match a key under .cuebert/workspace-manifest.json projects."
+    },
+    "engine": {
+      "type": "string",
+      "enum": ["unreal", "unity", "godot"],
+      "description": "Target game engine for path conventions and future M4+ tooling."
+    },
+    "defaults": {
+      "type": "object",
+      "description": "Optional defaults merged or inherited by each asset entry.",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x_": {}
+      },
+      "properties": {
+        "workflow": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^/\\\\]+$",
+          "description": "Default ComfyUI workflow name (JSON stem under comfyui-toolkit/workflows/)."
+        },
+        "params": {
+          "type": "object",
+          "description": "Base generation parameters shallow-merged with per-asset params (per-asset wins).",
+          "additionalProperties": true
+        },
+        "destination_root": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(^|/)\\.\\./).+/$",
+          "description": "Project-relative directory prefix (trailing slash) for advisory destination containment checks."
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered list of declared generated assets; batching is expressed as multiple entries, not batch fields.",
+      "items": {
+        "type": "object",
+        "required": ["id", "prompt", "destination"],
+        "additionalProperties": false,
+        "patternProperties": {
+          "^x_": {}
+        },
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]{1,64}$",
+            "description": "Stable unique id within this manifest: lowercase letters, digits, underscore, hyphen; max 64 chars."
+          },
+          "workflow": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^/\\\\]+$",
+            "description": "Overrides defaults.workflow when set."
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Primary positive prompt; non-empty; max 4096 chars (ComfyUI toolkit cap)."
+          },
+          "negative_prompt": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Optional negative prompt text."
+          },
+          "seed": {
+            "type": "integer",
+            "description": "Optional RNG seed for reproducibility; omission means non-deterministic regeneration."
+          },
+          "params": {
+            "type": "object",
+            "description": "Per-asset parameter overrides merged over defaults.params.",
+            "additionalProperties": true
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*(^|/)\\.\\./).+\\.(png|exr)$",
+            "description": "Project-relative output path ending in .png or .exr (HDR); no absolute paths; traversal sequences rejected."
+          },
+          "tags": {
+            "type": "array",
+            "description": "Optional flat string tags for filtering and reports.",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "references": {
+            "type": "array",
+            "description": "Optional reference images used as pose/style/context (paths are project-relative).",
+            "items": {
+              "type": "object",
+              "required": ["path", "role"],
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^(?!/)(?!.*(^|/)\\.\\./).+$",
+                  "description": "Project-relative path to a reference file."
+                },
+                "role": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Semantic role (e.g. pose, style, mask)."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

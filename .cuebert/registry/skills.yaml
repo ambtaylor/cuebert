@@ -27,14 +27,16 @@ skills:
       - icon
       - game art
     operations:
-      - name: comfyui_health_check
-        description: Probe ComfyUI HTTP reachability and queue hints (supports dry-run).
-      - name: comfyui_generate_asset
-        description: Submit an allow-listed workflow, poll history, and fetch PNG outputs under hub traces.
-      - name: comfyui_list_workflows
-        description: List bundled workflow JSON graphs and optional _cuebert_description metadata.
+      - name: asset_manifest_validate
+        description: Load a project's asset manifest YAML, validate against hub JSON Schema, and return a structured findings envelope.
       - name: comfyui_asset_status
         description: Look up completion state for a prompt_id from generate_asset (live or dry-run).
+      - name: comfyui_generate_asset
+        description: Submit an allow-listed workflow, poll history, and fetch PNG outputs under hub traces.
+      - name: comfyui_health_check
+        description: Probe ComfyUI HTTP reachability and queue hints (supports dry-run).
+      - name: comfyui_list_workflows
+        description: List bundled workflow JSON graphs and optional _cuebert_description metadata.
     skill_path: .cursor/skills/comfyui-toolkit/SKILL.md
     mcp_group: asset
     status: alpha

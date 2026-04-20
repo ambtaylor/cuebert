@@ -14,6 +14,12 @@ This folder is the **cuebert hub** for this workspace. It holds version info, th
 | `.cuebert/memory/memory.db` | M1-P6 | SQLite memory DB (gitignored) |
 | `.cuebert/traces/` | later | LangSmith-style traces (gitignored) |
 
+## Workspace manifest (`workspace-manifest.json`)
+
+Project entries under `projects` include a filesystem **`path`** (relative to this hub checkout) plus engine metadata as documented in `docs/_ai_system/agents/agent-ops-onboard.md`. Optional fields include:
+
+- **`assetManifestPath`** (string, optional) — path **relative to the game project root** (not the hub) to the per-project **asset manifest YAML** that declares ComfyUI-generated raster outputs. When omitted, tooling falls back to **`<project-root>/.cuebert-assets.yaml`** when that file exists. See **`docs/_ai_system/standards/asset-manifest.md`**.
+
 ## Root-level companions
 
 | Path | Populated by | Description |

@@ -1,0 +1,128 @@
+# =============================================================================
+# Cuebert asset manifest (YAML) — project-local template
+# =============================================================================
+# Copy this file into your game repository and tune entries for each generated
+# still. The hub never requires this file for generic /play, but the M4 asset
+# pipeline (ComfyUI + asset agent) uses it to know what to render and where PNG
+# outputs land under your Content/ (or engine-equivalent) tree.
+#
+# Registration: set projects.<key>.assetManifestPath in the cuebert hub
+# .cuebert/workspace-manifest.json, or rely on the convention
+# <project-root>/.cuebert-assets.yaml (see docs/_ai_system/standards/asset-manifest.md).
+#
+# Replace the example project key "hello-level" with your real PROJECT_KEY
+# (must match the JSON key under workspace-manifest "projects").
+# =============================================================================
+
+version: 1
+# Integer manifest format version. Only 1 is valid today; unknown versions are
+# rejected loudly by tooling.
+
+project: hello-level
+# Logical project id — MUST match a key in .cuebert/workspace-manifest.json.
+
+engine: unreal
+# One of: unreal | unity | godot (drives conventions for future tooling).
+
+# -----------------------------------------------------------------------------
+# defaults (optional block)
+# -----------------------------------------------------------------------------
+# When an asset omits workflow / params / negative_prompt, defaults fill the gap.
+# destination_root is advisory for validators: destinations outside it emit warns.
+
+defaults:
+  workflow: texture_tileable
+  # Stem of a JSON graph checked into comfyui-toolkit/workflows/ on the hub.
+
+  destination_root: Content/Art/
+  # Project-relative directory prefix (trailing slash). Used for containment warns.
+
+  params:
+    sampler: euler
+    steps: 20
+    cfg_scale: 7.5
+    width: 1024
+    height: 1024
+    # Shallow dict merged under per-asset params; per-asset keys override.
+
+# -----------------------------------------------------------------------------
+# assets (required non-empty list)
+# -----------------------------------------------------------------------------
+# One list entry = one generated raster. No batching field: express batches as
+# multiple entries with distinct id and destination values.
+
+assets:
+  # ===========================================================================
+  # Asset 1 — MINIMAL (only required fields)
+  # ===========================================================================
+  # Required per asset: id, prompt, destination.
+  # Optional: workflow, negative_prompt, seed, params, tags, references, x_*.
+
+  - id: hero_idle_minimal
+    # Stable id: ^[a-z0-9_-]{1,64}$, unique within this file.
+
+    prompt: >
+      Stylized hero idle stance, flat lighting, transparent-ready silhouette,
+      game-ready orthographic front view.
+    # Positive prompt; non-empty; max 4096 characters (hub ComfyUI toolkit cap).
+
+    destination: Content/Art/Heroes/hero_idle.png
+    # Project-relative path; must end with .png or .exr; no ".." segments.
+
+  # ===========================================================================
+  # Asset 2 — FULL optional surface
+  # ===========================================================================
+
+  - id: hero_portrait_full
+
+    workflow: concept_character
+    # Overrides defaults.workflow for this asset only.
+
+    prompt: >
+      High-detail portrait of the same hero as asset 1, oil-paint stylization,
+      rim light, neutral background, centered framing, 4k feel downscaled.
+
+    negative_prompt: >
+      text, watermark, logo, deformed hands, extra limbs, low resolution
+    # Optional CLIP negative text (same length bound as prompt).
+
+    seed: 424242
+    # Optional int. Omitting seed marks the asset as non-deterministic across runs.
+
+    params:
+      sampler: dpmpp_2m
+      steps: 28
+      cfg_scale: 6.5
+      width: 1024
+      height: 1536
+    # Overrides defaults.params for this asset.
+
+    destination: Content/Art/Heroes/hero_portrait.png
+
+    tags:
+      - character
+      - hero
+      - portrait
+    # Flat strings only (no nested maps in tags).
+
+    references:
+      # Optional reference stills the asset agent may feed to ControlNet/IPAdapter
+      # style flows in later milestones (M4-P3+).
+      - path: Content/Refs/hero_concept.png
+        role: pose
+      - path: Content/Refs/mood_board.png
+        role: style
+
+    x_gameplay:
+      character_id: hero_01
+      animation_set: AS_Hero
+      inventory_slot: portrait
+    # Opaque gameplay metadata — any x_* key is allowed; core validators ignore it.
+
+# -----------------------------------------------------------------------------
+# Top-level x_* extensions (optional)
+# -----------------------------------------------------------------------------
+# Convention (non-normative): pin a ComfyUI version string for the asset agent to
+# compare against the live server before batch regeneration.
+
+x_comfyui_version_pin: "0.3.0"
