@@ -48,6 +48,12 @@ Gaming ship harness (**coming in M3**). Protocol doc: `docs/_ai_system/agents/ag
     treated as ship.override_unauthorized scope violation.
   - Migration escape hatch: spec_only_as_info: true in the agent's config.yaml
     demotes findings from reject to advisory for transitional projects.
+  - /ship cook phase (M8-P1 spec): dispatches agent-cook-package-game which
+    orchestrates UAT BuildCookRun via unreal-build skill tools.
+    - Win64 Shipping is the M8-P1 reference path.
+    - Mac, Linux, IOS, Android documented as skeletons.
+    - Iterative cook deferred.
+  - M8-P3 will replace M3-P2 ship-cook/ship-package stubs with real dispatch.
 
 When M3 lands, `/ship` follows the same **main-chat protocol** pattern as `/d` — not a named `subagent_type`.
 

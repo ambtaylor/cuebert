@@ -121,9 +121,7 @@ skills:
     status: active
 
 # Agents are tracked in docs/_ai_system/agents/*.md, not here.
-# M7-P1 introduces agent-qa-resilience-game (spec M7-P1; enforced via ship guard
-# in M7-P3 pending rule-engine implementation).
-# M7-P2 introduces agent-prod-readiness-game (spec M7-P2; enforced via ship
-# guard in M7-P3 pending rule-engine implementation).
-# Once rule engines ship, each will be listed here as a proper skill with
-# mcp_group: qa.
+# M7-P1 agent-qa-resilience-game (spec, enforced via ship guard M7-P3).
+# M7-P2 agent-prod-readiness-game (spec, enforced via ship guard M7-P3).
+# M8-P1 agent-cook-package-game (spec, dispatches unreal-build MCP tools).
+# Once rule engines ship for M7 agents, each will be listed here as proper skills.

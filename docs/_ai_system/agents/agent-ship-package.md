@@ -222,6 +222,8 @@ Upload phase MUST re-verify checksums; package phase SHOULD store **relative** p
 | `agent-ship-cook.md` | Upstream `cooked_paths` |
 | `agent-ship-cert.md` | Upstream `cert_verdict` |
 | `agent-ship-upload.md` | Downstream consumer of `packages` |
+| `agent-cook-package-game.md` | **M8-P1** cook/stage/package orchestration spec (**M8-P3** dispatch) |
+| `cook-package-commands.md` | UAT **`BuildCookRun`** argv catalog |
 
 ---
 

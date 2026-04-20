@@ -257,6 +257,8 @@ Parent `agent-ship.md` §3.9 defines a **Cook** slim sketch. This file is the **
 | `play-preview-guards.md` | Evidence shape **pattern** for structured findings (informative only here) |
 | `control-plane-paths.md` | Hub traces, zero-footprint app repos |
 | `agent-ship-cert.md` | Downstream consumer of `cooked_paths` |
+| `agent-cook-package-game.md` | **M8-P1** cook/stage/package orchestration spec (**M8-P3** dispatch) |
+| `cook-package-commands.md` | UAT **`BuildCookRun`** argv catalog |
 
 ---
 

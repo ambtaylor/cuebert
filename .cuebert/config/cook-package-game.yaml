@@ -1,0 +1,52 @@
+# cuebert cook-package-game default configuration (M8-P1)
+# Per-project overrides go in <project_path>/.cuebert/cook-package.yaml
+
+version: 1
+
+defaults:
+  compression: zlib
+  cultures: [en]
+  output_dir_template: "{project_dir}/Saved/StagedBuilds/{target_platform}-{build_config}"
+  timeout_s: 3600    # 1 hour hard cap per phase
+
+platform_matrix:
+  Win64:
+    status: on
+    supported_configs: [Shipping, Test, Development]
+    supported_stores: [steam, epic, gog, itchio, internal]
+    uat_extra_args: []
+  Mac:
+    status: on
+    supported_configs: [Shipping, Development]
+    supported_stores: [steam, internal]
+    uat_extra_args: []
+  Linux:
+    status: on
+    supported_configs: [Shipping, Development]
+    supported_stores: [internal]
+    uat_extra_args: []
+  IOS:
+    status: skeleton
+    supported_configs: [Shipping]
+    supported_stores: [internal]
+    uat_extra_args: []
+    notes: "Requires Xcode toolchain. Skeleton only in M8-P1."
+  Android:
+    status: skeleton
+    supported_configs: [Shipping]
+    supported_stores: [internal]
+    uat_extra_args: []
+    notes: "Requires Gradle toolchain. Skeleton only in M8-P1."
+
+# Scope matrix (agent §7). Enforced in M8-P3.
+scope:
+  agent-ship-cook:
+    modes: [dry_run, live]
+  agent-ship-package:
+    modes: [dry_run, live]
+  user-direct-debug:
+    modes: [dry_run, live]
+  agent-play-qa:
+    modes: []
+
+spec_only_as_info: true    # M8-P1: flipped to false in M8-P3
