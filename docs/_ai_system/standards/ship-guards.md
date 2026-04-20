@@ -468,14 +468,14 @@ Replace `<guard_name>` with `ship.prod_readiness` or `ship.qa_resilience`, and `
 
 ---
 
-## Appendix C — Cert floor breach
+## Appendix C — Cert floor breach (legacy guard path)
 
-**Situation:** Cert emits a **`fail`** severity finding for profile `indie-light`.
+**Situation:** A **blocking** cert profile path (legacy **`guard.cert.*`** evaluators, not **`agent-cert-game`**) emits a **`fail`** severity finding.
 
 **Expected:**
 
-- `guard.cert.severity_floor` resolves **`fail`** (`max_fail_findings: 0`).  
-- **Package not dispatched.**
+- `guard.cert.severity_floor` resolves **`fail`** (`max_fail_findings: 0`) **when that legacy path is enabled**.  
+- **M8-P3 note:** **`agent-cert-game`** is **advisory-only** (`advisory_always: true`) and does not emit REJECT/`fail` findings; cert runs **after** package for storefront checklist surfacing only.
 
 ---
 
