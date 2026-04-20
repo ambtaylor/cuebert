@@ -257,3 +257,7 @@ def troubleshoot_commit_safe(
                 sys.path.remove(str(mem_tools))
             except ValueError:
                 pass
+
+
+# Call sites import the underscored alias for best-effort memory hooks.
+_troubleshoot_commit_safe = troubleshoot_commit_safe

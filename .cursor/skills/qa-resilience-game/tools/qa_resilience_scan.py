@@ -58,7 +58,8 @@ _RE_DISK = re.compile(
 )
 _RE_NET = re.compile(
     r"(?:LogNetPing: Warning: Round-trip.*?([0-9]+\.[0-9]+)\s*ms|"
-    r"(?i)Connection\s+(?:timed\s+out|lost)|UNetConnection.*timeout)",
+    r"Connection\s+(?:timed\s+out|lost)|UNetConnection.*timeout)",
+    re.IGNORECASE,
 )
 
 _DEFAULT_SEVERITIES: dict[str, str] = {

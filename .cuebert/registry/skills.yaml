@@ -125,6 +125,53 @@ skills:
     mcp_group: qa
     status: alpha
 
+  - name: cook-package-game
+    description: Orchestrate Unreal cook+package pipeline via UAT; chains cook, stage, and package via unreal-build tools.
+    skill_path: .cursor/skills/cook-package-game/SKILL.md
+    keywords: [cook, package, UAT, unreal, build, BuildCookRun, ship]
+    operations:
+      - cook_package_run
+      - cook_package_status
+    mcp_group: engine
+    status: alpha
+
+  - name: cert-game
+    description: Advisory certification checklist scanner (Steam, Epic, GOG, itch.io); INFO/WARN findings only.
+    skill_path: .cursor/skills/cert-game/SKILL.md
+    keywords: [cert, certification, steam, epic, gog, itch, advisory, platform]
+    operations:
+      - cert_scan
+      - cert_status
+    mcp_group: qa
+    status: alpha
+
+  - name: play-guards
+    description: Evaluate /play Preview Guards (G-1 through G-5) for engine, compile, logs, assets, and scope.
+    skill_path: .cursor/skills/play-guards/SKILL.md
+    keywords: [play, preview, guards, qa, pipeline]
+    operations:
+      - play_guard_evaluate
+    mcp_group: qa
+    status: alpha
+
+  - name: ship-guards
+    description: Evaluate /ship pipeline guards; dispatches resilience, readiness, cook-package, and cert phases.
+    skill_path: .cursor/skills/ship-guards/SKILL.md
+    keywords: [ship, guards, release, qa, pipeline]
+    operations:
+      - ship_guard_evaluate
+    mcp_group: qa
+    status: alpha
+
+  - name: asset-guards
+    description: Evaluate /asset pipeline guards against generated assets and manifest.
+    skill_path: .cursor/skills/asset-guards/SKILL.md
+    keywords: [asset, guards, manifest, pipeline, comfyui]
+    operations:
+      - asset_guard_evaluate
+    mcp_group: asset
+    status: alpha
+
   - name: memory-toolkit
     description: "Milestone and troubleshooting memory for cuebert (SQLite FTS5 + optional vector). Text-only by default (CUEBERT_MEMORY_MODE=text); hybrid mode opt-in."
     keywords: [memory, milestone, troubleshoot, lookup, commit, search, remember, history, decisions]

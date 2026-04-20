@@ -1,42 +1,20 @@
 {
   "mcpServers": {
     "cuebert-core": {
-      "command": "/opt/homebrew/bin/python3.11",
-      "args": [
-        "/Users/ambtaylo/CursorProjects/cuebert/.cursor/mcp-server/server.py",
-        "--group",
-        "core"
-      ],
-      "env": {
-        "CUEBERT_MEMORY_MODE": "text"
-      }
+      "command": "python3",
+      "args": [".cursor/mcp-server/server.py", "--group", "core"]
     },
     "cuebert-asset": {
-      "command": "/opt/homebrew/bin/python3.11",
-      "args": [
-        "/Users/ambtaylo/CursorProjects/cuebert/.cursor/mcp-server/server.py",
-        "--group",
-        "asset"
-      ],
-      "env": {}
+      "command": "python3",
+      "args": [".cursor/mcp-server/server.py", "--group", "asset"]
     },
     "cuebert-engine": {
-      "command": "/opt/homebrew/bin/python3.11",
-      "args": [
-        "/Users/ambtaylo/CursorProjects/cuebert/.cursor/mcp-server/server.py",
-        "--group",
-        "engine"
-      ],
-      "env": {}
+      "command": "python3",
+      "args": [".cursor/mcp-server/server.py", "--group", "engine"]
     },
     "cuebert-qa": {
-      "command": "/opt/homebrew/bin/python3.11",
-      "args": [
-        "/Users/ambtaylo/CursorProjects/cuebert/.cursor/mcp-server/server.py",
-        "--group",
-        "qa"
-      ],
-      "env": {}
+      "command": "python3",
+      "args": [".cursor/mcp-server/server.py", "--group", "qa"]
     }
   }
 }

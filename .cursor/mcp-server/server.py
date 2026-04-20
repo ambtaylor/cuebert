@@ -75,7 +75,12 @@ GROUPS: dict[str, GroupSpec] = {
     # All loaded via dynamic discovery from .cursor/skills/unreal-*/tools/*.py
     "engine": {
         "include_core": False,
-        "skills": ["unreal-bridge", "unreal-build", "git-lfs-toolkit"],
+        "skills": [
+            "unreal-bridge",
+            "unreal-build",
+            "git-lfs-toolkit",
+            "cook-package-game",
+        ],
     },
     "qa": {
         "include_core": False,
@@ -93,6 +98,8 @@ GROUPS: dict[str, GroupSpec] = {
             # M10-P4: harness guard evaluators (/play, /ship)
             "play-guards",
             "ship-guards",
+            # M10: advisory cert checklist (INFO/WARN only)
+            "cert-game",
         ],
     },
 }

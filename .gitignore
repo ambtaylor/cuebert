@@ -34,13 +34,24 @@ Thumbs.db
 .cuebert/memory/*.db-shm
 .cuebert/logs/
 .cuebert/cache/
-# Vault: ignore all vault files except tracked scaffold (README + .gitkeep)
+# Vault: ignore all vault files except tracked scaffold (README, .gitkeep, *.yaml.example)
 .cuebert/vault/**
 !.cuebert/vault/
 !.cuebert/vault/README.md
 !.cuebert/vault/.gitkeep
 !.cuebert/vault/shared/
 !.cuebert/vault/shared/.gitkeep
+# Vault credentials (real files ignored; examples tracked)
+.cuebert/vault/**/credentials.yaml
+!.cuebert/vault/shared/comfyui/
+!.cuebert/vault/shared/comfyui/credentials.yaml.example
+!.cuebert/vault/shared/unreal/
+!.cuebert/vault/shared/unreal/credentials.yaml.example
+!.cuebert/vault/shared/stores/
+!.cuebert/vault/shared/stores/credentials.yaml.example
+!.cuebert/vault/shared/memory/
+!.cuebert/vault/shared/memory/credentials.yaml.example
+!.cuebert/vault/**/*.yaml.example
 # Runtime trace artifacts — ignored except for curated documentation examples.
 .cuebert/traces/*
 !.cuebert/traces/play/
