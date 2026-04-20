@@ -87,6 +87,9 @@ GROUPS: dict[str, GroupSpec] = {
             "vision-qa",
             "screenshot-baseline-toolkit",
             "engine-log-toolkit",
+            # M10-P2: qa-resilience-game, prod-readiness-game rule engines
+            "qa-resilience-game",
+            "prod-readiness-game",
         ],
     },
 }

@@ -105,6 +105,26 @@ skills:
     mcp_group: qa
     status: alpha
 
+  - name: qa-resilience-game
+    description: Scan Unreal runtime logs and Gauntlet artifacts for resilience defects; MCP tools for agent-play-qa and ship gates.
+    skill_path: .cursor/skills/qa-resilience-game/SKILL.md
+    keywords: [qa, resilience, gauntlet, unreal, logs, hitches, memory, crash]
+    operations:
+      - qa_resilience_scan
+      - qa_resilience_status
+    mcp_group: qa
+    status: alpha
+
+  - name: prod-readiness-game
+    description: Scan Unreal project configs for production readiness (INFO/REJECT findings) prior to ship.
+    skill_path: .cursor/skills/prod-readiness-game/SKILL.md
+    keywords: [prod, readiness, shipping, unreal, ini, uproject, packaging]
+    operations:
+      - prod_readiness_scan
+      - prod_readiness_status
+    mcp_group: qa
+    status: alpha
+
   - name: memory-toolkit
     description: "Milestone and troubleshooting memory for cuebert (SQLite FTS5 + optional vector). Text-only by default (CUEBERT_MEMORY_MODE=text); hybrid mode opt-in."
     keywords: [memory, milestone, troubleshoot, lookup, commit, search, remember, history, decisions]
@@ -126,6 +146,6 @@ skills:
 # M8-P1 agent-cook-package-game (spec, dispatches unreal-build MCP tools).
 # M8-P2 agent-cert-game (spec, advisory-only INFO/WARN checklist scanner).
 # M8-P3 wires all five agents into /ship strict + advisory gates.
-# Rule engines (M7-P1/P2 log-parsing, M8-P1/P2 config-scanning) ship in follow-up work.
+# Rule engines: qa-resilience-game + prod-readiness-game (M10-P2) ship as MCP tools under mcp_group qa.
 # M9 activates /play, /ship, /asset harnesses (removes stub gates from supervisor).
 # M9 implements --preview walkers for all three harnesses.
