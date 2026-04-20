@@ -85,4 +85,7 @@ scope:
     advisory:
       - agent-play-qa
 
-spec_only_as_info: true    # M7-P2: rules not yet enforced; M7-P3 flips this
+# M7-P2: spec_only_as_info=true (advisory).
+# M7-P3: flipped to false (enforced). Set to true to temporarily restore advisory
+# mode during migration; remove this line once migration is complete.
+spec_only_as_info: false

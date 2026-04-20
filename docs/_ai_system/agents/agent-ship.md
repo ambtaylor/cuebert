@@ -50,19 +50,23 @@ Each phase declares a **strict entry gate**. Failing a gate **halts** the pipeli
 - **Dispatch:** Harness-owned evaluation + optional **`generalPurpose`** read-only Task for git/manifest scanning — exact split **M3-P3**.  
 - **Implementation:** Guard contract **M3-P1** (this doc); default config path **`.cuebert/config/ship-guards.yaml`** — **M3-P3**; evaluators **M8** (UE Tier 1 first).
 
-### Pre-ship readiness scan (M7-P2 spec)
+### Pre-ship readiness scan (`ship.prod_readiness`, M7-P2 spec, M7-P3 enforced)
 
-Before cook begins, `/ship` dispatches `agent-prod-readiness-game` with:
+Before cook begins, `/ship` dispatches `agent-prod-readiness-game` under guard
+**`ship.prod_readiness`** with:
 
 - `project_path` from the ship plan.
 - `target_platform`, `target_store`, `build_config` from the ship plan.
 
-If any REJECT finding is returned and `override_reject` is not set to `true`,
-`/ship` halts with an error envelope surfacing the findings. INFO findings are
-logged but do not block.
+If any **REJECT** finding is returned and the **`user-direct-debug`** override
+is not active (see §7.1), `/ship` halts with an error envelope surfacing the
+findings. **INFO** findings are logged but do not block.
 
-Strict gate wiring (M7-P3) converts this from spec-only to enforced. Until then,
-the call is advisory and `/ship` proceeds regardless.
+**M7-P3** makes this a **strict gate** by default (`spec_only_as_info: false` in
+`.cuebert/config/prod-readiness-game.yaml`). The earlier **advisory-only**
+behavior is **deprecated** for new hub checkouts; projects still migrating MAY
+set **`spec_only_as_info: true`** temporarily (transitional advisory demotion
+per `ship-guards.md` §2.2 and §11).
 
 See: [`agent-prod-readiness-game.md`](./agent-prod-readiness-game.md),
 [`prod-readiness-game-rules.md`](../standards/prod-readiness-game-rules.md).
@@ -316,6 +320,27 @@ Application repositories remain **zero-footprint** for cuebert control-plane tre
 
 ## 7. Guard decision tree
 
+**Phase sequence (canonical order, including M7-P3 `ship.*` gates):**
+
+```text
+Phases:
+  1. pre_cook
+     ├── ship.prod_readiness   (M7-P3, enforced)
+     └── [existing pre-cook guards]
+  2. cook
+  3. post_cook
+     ├── ship.qa_resilience    (M7-P3, enforced)
+     └── [existing post-cook guards]
+  4. pre_package
+  5. package
+  6. upload (optional, dry-run default)
+```
+
+The numbered pseudo-flow below inserts **CERT** and **POST-CERT** between
+**post-cook** and **package** when `cert_profile != none`. **`pre_package`** in
+the shorthand list is the span from **post-cook guards** through **post-cert
+guards** up to the **package** dispatch boundary.
+
 Pseudo-flow (compare **`play-preview-guards.md` §7**):
 
 ```text
@@ -355,6 +380,27 @@ Pseudo-flow (compare **`play-preview-guards.md` §7**):
    a. Write envelope.json with full phase story + checksums.
    b. Memory hooks per §13 (mandatory).
 ```
+
+### 7.1 Override mechanism (user-direct-debug only)
+
+When invoked as **`user-direct-debug`**, a caller may pass **`--override=accept-risk`**
+(equivalent envelope intent: **`override_reject: true`** for production readiness)
+to bypass either **`ship.prod_readiness`** or **`ship.qa_resilience`**. The override:
+
+- Is honored **ONLY** for **`caller == "user-direct-debug"`**.
+- Is **NOT** honored when **`caller`** is any other agent (`agent-ship`,
+  `agent-ship-cook`, etc.). Attempted override by non-user callers is treated
+  as a **scope violation** and logged to **`troubleshoot_commit`** with severity
+  **`error`** and code **`ship.override_unauthorized`**.
+- Triggers an **audit entry** on every bypass: **`troubleshoot_commit`** severity
+  **`warn`**, body includes **all findings** that would have blocked.
+- Does **NOT** auto-accept future runs; must be **re-specified** each time.
+
+Post-cook, **`agent-qa-resilience-game`** MUST be invoked with
+**`session_kind: build`** for the **`ship.qa_resilience`** gate (cook log and
+staged artifact analysis). Advisory demotion for that agent follows
+**`.cuebert/config/qa-resilience-game.yaml`** → **`spec_only_as_info`**
+(transitional only; same warning contract as `ship-guards.md` §11).
 
 ---
 
@@ -471,6 +517,7 @@ Nested under `/o`: Orchestrator memory bridges MAY add fields, but they **must n
 | `docs/_ai_system/agents/agent-orchestrator.md` | Main-chat harness + `--preview` pattern reference for future `/ship --preview` |
 | `.cursor/rules/cuebert-supervisor.mdc` | `/ship` stub until wired; forbidden `subagent_type` values |
 | `docs/projects/cue/plans/active/cuebert-gaming-system.md` | Authoritative milestone plan — M3/M8 ship scope |
+| `docs/_ai_system/standards/ship-guards.md` §2.2, §4.5, §11 | **`ship.prod_readiness`**, **`ship.qa_resilience`** contracts and M7-P3 enforcement status |
 
 ---
 

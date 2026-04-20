@@ -79,9 +79,9 @@ From `.cuebert/config/ship-guards.yaml` / `ship-guards.md` §2:
 
 The ordered traversal matches **`ship-guards.md` §7** (and `agent-ship.md` §7):
 
-1. **PRE-COOK GUARDS** — load YAML + overrides; stable sort by `guard_id`; on **`fail`**, halt before cook.  
+1. **PRE-COOK GUARDS** — load YAML + overrides; stable sort by `guard_id`; on **`fail`**, halt before cook. Includes **`ship.prod_readiness`** (`agent-prod-readiness-game`) per **M7-P3**.  
 2. **COOK** — dispatch `agent-ship-cook`.  
-3. **POST-COOK GUARDS** — consume cook envelope + disk; halt before cert on **`fail`**.  
+3. **POST-COOK GUARDS** — consume cook envelope + disk; halt before cert on **`fail`**. Includes **`ship.qa_resilience`** (`agent-qa-resilience-game`, `session_kind: build`) per **M7-P3**.  
 4. **CERT** — dispatch `agent-ship-cert` when `cert_profile != none`.  
 5. **POST-CERT GUARDS** — severity floor + checklist + report emission.  
 6. **PACKAGE** — dispatch `agent-ship-package`.  
@@ -119,7 +119,65 @@ SHIP_METADATA_PRESENT=true
 **Representative `guards/pre_cook.json`:** see the committed fixture at `.cuebert/traces/ship/example-2026-04-20T12-30-00Z/guards/pre_cook.json` (five `pre_cook` rows: four `info` spec-only stubs plus one `pass` for `guard.project.ship_metadata`).
 
 **Phase verdict:** `pass`.  
-**Next:** dispatch **`agent-ship-cook`**.
+**Next:** **`ship.prod_readiness`** (M7-P3), then dispatch **`agent-ship-cook`**.
+
+---
+
+### 3.1a Phase: pre_cook (M7-P3 enforcement) — `ship.prod_readiness`
+
+**Dispatch:** `agent-prod-readiness-game`
+
+**Sample request:**
+
+```json
+{
+  "project_path": "/path/to/HelloLevel.uproject",
+  "target_platform": "Mac",
+  "target_store": "internal",
+  "build_config": "Shipping",
+  "caller": "agent-ship"
+}
+```
+
+**Sample response (pass):**
+
+```json
+{
+  "status": "pass",
+  "mode": "live",
+  "findings": [],
+  "summary": {
+    "total_rules_evaluated": 14,
+    "reject_count": 0,
+    "info_count": 0,
+    "skipped_count": 0
+  },
+  "rule_version": "1.0.0"
+}
+```
+
+**Alternate response (reject variant):**
+
+```json
+{
+  "status": "fail",
+  "findings": [
+    {
+      "rule_id": "security.remote_control_disabled_shipping",
+      "category": "security",
+      "severity": "reject",
+      "detail": "bEnable=True in [RemoteControl] section of Config/DefaultEngine.ini",
+      "remediation_hint": "Set bEnable=False or remove the plugin."
+    }
+  ],
+  "summary": {
+    "reject_count": 1,
+    "info_count": 0
+  }
+}
+```
+
+**/ship** halts with an error envelope surfacing the finding.
 
 ---
 
@@ -174,7 +232,91 @@ OUTPUT_DIR=.cuebert/traces/ship/example-2026-04-20T12-30-00Z/cooked/
 **Representative `guards/post_cook.json`:** see `.cuebert/traces/ship/example-2026-04-20T12-30-00Z/guards/post_cook.json` (three post-cook rows; all `info` in this doc-only pass, with cook log pointer evidence).
 
 **Phase verdict:** `pass`.  
-**Next:** **`agent-ship-cert`**.
+**Next:** **`ship.qa_resilience`** (M7-P3), then **`agent-ship-cert`**.
+
+---
+
+### 3.3a Phase: post_cook (M7-P3 enforcement) — `ship.qa_resilience`
+
+**Dispatch:** `agent-qa-resilience-game` with **`session_kind: build`** (cook log scan).
+
+**Sample request:**
+
+```json
+{
+  "project_path": "/path/to/HelloLevel.uproject",
+  "session_kind": "build",
+  "artifacts": {
+    "gauntlet_log_dir": null,
+    "pie_log_path": null,
+    "build_log_path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cook/engine.log",
+    "screenshots_dir": null
+  },
+  "caller": "agent-ship"
+}
+```
+
+**Sample response (pass):**
+
+```json
+{
+  "status": "pass",
+  "mode": "live",
+  "session_kind": "build",
+  "findings": [],
+  "metrics": {
+    "runtime_seconds": 900.0,
+    "hitch_count": 0,
+    "hitches_per_minute": 0.0,
+    "peak_memory_mb": 2048.0,
+    "memory_growth_mb_per_minute": 2.5,
+    "ensure_count": 0,
+    "crash_count": 0,
+    "streaming_stall_count": 0
+  },
+  "rule_version": "1.0.0"
+}
+```
+
+**Alternate response (fail variant — `crash.fatal_signal`):**
+
+```json
+{
+  "status": "fail",
+  "mode": "live",
+  "session_kind": "build",
+  "findings": [
+    {
+      "category": "crash",
+      "severity": "critical",
+      "detail": "Fatal signal SIGSEGV in cook log tail",
+      "evidence": {
+        "log_path": ".cuebert/traces/ship/example-2026-04-20T12-30-00Z/cook/engine.log",
+        "line_number": 18440,
+        "screenshot_path": null,
+        "metric_value": null,
+        "threshold": null
+      },
+      "rule_id": "crash.fatal_signal"
+    }
+  ],
+  "metrics": {
+    "runtime_seconds": 120.0,
+    "hitch_count": 0,
+    "hitches_per_minute": 0.0,
+    "peak_memory_mb": 1800.0,
+    "memory_growth_mb_per_minute": 5.0,
+    "ensure_count": 0,
+    "crash_count": 1,
+    "streaming_stall_count": 0
+  },
+  "rule_version": "1.0.0"
+}
+```
+
+**/ship** halts with a structured error envelope including the **metrics** snapshot.
+
+Fixture envelopes (committed): `.cuebert/traces/ship/example-2026-04-20T15-00-00Z/prod_readiness/` and `qa_resilience/`.
 
 ---
 
@@ -525,3 +667,17 @@ Hub path prefix: `.cuebert/traces/ship/`. Aligns with **`control-plane-paths.md`
 
 **Status:** M3-P3 (doc-only example). **Real executable run:** M8-P1 (cook) + M8-P2 (cert) + M8-P3 (package/upload wiring).  
 **Fixture commit path:** `.cuebert/traces/ship/example-2026-04-20T12-30-00Z/` (curated exception under `.gitignore`).
+
+---
+
+## 8. Override walk-through (user-direct-debug)
+
+**Caller:** `user-direct-debug`  
+**Flag:** `--override=accept-risk`  
+**Finding:** `ship.prod_readiness` returns a **REJECT** finding for **`content.no_placeholder_assets`**.
+
+**Expected behavior:**
+
+- `/ship` proceeds past pre-cook.
+- **`troubleshoot_commit`** is called with severity **`warn`**, body containing the bypassed finding(s).
+- Final **`/ship`** envelope includes **`"override_applied": true`** and **`"overridden_findings": [...]`**.

@@ -1,0 +1,32 @@
+{
+  "status": "fail",
+  "mode": "live",
+  "project_path": "/abs/path/hello-level/HelloLevel.uproject",
+  "target_platform": "Mac",
+  "target_store": "internal",
+  "build_config": "Shipping",
+  "findings": [
+    {
+      "rule_id": "content.no_placeholder_assets",
+      "category": "content",
+      "severity": "reject",
+      "detail": "Placeholder mesh SM_PlaceholderCube referenced by shipped map MainMenu",
+      "evidence": {
+        "file_path": "Content/Maps/MainMenu.umap",
+        "line_number": null,
+        "config_key": null,
+        "observed_value": "SM_PlaceholderCube",
+        "expected": "No /Engine/EditorMeshes placeholder assets in shipping maps"
+      },
+      "remediation_hint": "Replace placeholder geometry with final meshes or remove references before ship."
+    }
+  ],
+  "summary": {
+    "total_rules_evaluated": 14,
+    "reject_count": 1,
+    "info_count": 0,
+    "skipped_count": 0
+  },
+  "rule_version": "1.0.0",
+  "memory_id": null
+}

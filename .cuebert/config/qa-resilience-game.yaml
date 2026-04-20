@@ -71,6 +71,7 @@ scope:
     - agent-ship-cook
     - user-direct-debug
 
-# M7-P1: rules not yet enforced in automation; harnesses may surface all
-# findings as informational until M7-P3 parsers + gates land.
-spec_only_as_info: true
+# M7-P1: spec_only_as_info=true (advisory).
+# M7-P3: flipped to false (enforced). Set to true to temporarily restore advisory
+# mode during migration; remove this line once migration is complete.
+spec_only_as_info: false

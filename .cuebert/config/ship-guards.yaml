@@ -82,6 +82,30 @@ guards:
     enabled: true
     default_severity: fail
 
+  # M7-P3 strict gates
+  ship.prod_readiness:
+    phase_boundary: pre_cook
+    status: on
+    default_severity: reject
+    advisory_mode_source: .cuebert/config/prod-readiness-game.yaml
+    dispatches: agent-prod-readiness-game
+    override_via: --override=accept-risk (user-direct-debug only)
+    description: >
+      Pre-cook production-readiness scan. Blocks /ship on any REJECT finding.
+
+  ship.qa_resilience:
+    phase_boundary: post_cook
+    status: on
+    default_severity: reject
+    advisory_mode_source: .cuebert/config/qa-resilience-game.yaml
+    dispatches: agent-qa-resilience-game
+    dispatch_args:
+      session_kind: build
+    override_via: --override=accept-risk (user-direct-debug only)
+    description: >
+      Post-cook resilience scan of the cook log + stage artifacts. Blocks /ship
+      on any critical or error finding.
+
 global:
   # Hard wall-clock budget for cook subprocess family (seconds).
   cook_max_duration_s: 1800

@@ -1,0 +1,32 @@
+{
+  "status": "fail",
+  "mode": "live",
+  "session_kind": "build",
+  "findings": [
+    {
+      "category": "crash",
+      "severity": "critical",
+      "detail": "Fatal signal SIGSEGV reported in cook log tail",
+      "evidence": {
+        "log_path": ".cuebert/traces/ship/example-2026-04-20T15-00-00Z/cook/engine.log",
+        "line_number": 18440,
+        "screenshot_path": null,
+        "metric_value": null,
+        "threshold": null
+      },
+      "rule_id": "crash.fatal_signal"
+    }
+  ],
+  "metrics": {
+    "runtime_seconds": 120.0,
+    "hitch_count": 0,
+    "hitches_per_minute": 0.0,
+    "peak_memory_mb": 1800.0,
+    "memory_growth_mb_per_minute": 5.0,
+    "ensure_count": 0,
+    "crash_count": 1,
+    "streaming_stall_count": 0
+  },
+  "rule_version": "1.0.0",
+  "memory_id": null
+}

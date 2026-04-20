@@ -121,6 +121,9 @@ skills:
     status: active
 
 # Agents are tracked in docs/_ai_system/agents/*.md, not here.
-# M7-P1 introduces agent-qa-resilience-game (spec only, no MCP tools).
-# M7-P2 introduces agent-prod-readiness-game (spec only, no MCP tools).
-# Once M7-P3 adds rule engines, each will be listed as a proper skill.
+# M7-P1 introduces agent-qa-resilience-game (spec M7-P1; enforced via ship guard
+# in M7-P3 pending rule-engine implementation).
+# M7-P2 introduces agent-prod-readiness-game (spec M7-P2; enforced via ship
+# guard in M7-P3 pending rule-engine implementation).
+# Once rule engines ship, each will be listed here as a proper skill with
+# mcp_group: qa.

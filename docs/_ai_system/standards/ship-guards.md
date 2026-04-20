@@ -92,11 +92,37 @@ Harness callers **MUST** treat guards whose status is **spec only (M3-P3)** as *
 | `guard.package.checksum` | post-package | fail | Recorded checksum matches recomputed hash for the artifact bytes. | file | **spec only (M3-P3)**; impl **M8** |
 | `guard.package.manifest` | post-package | fail | **Manifest of contents** generated beside or inside package per format rules. | manifest | **spec only (M3-P3)**; impl **M8** |
 
-**Count:** **14** stable guard ids — **API surface** frozen for **M3-P3** config and **M8** engines.
+**Count:** **14** stable `guard.*` ids — **API surface** frozen for **M3-P3** config and **M8** engines.
 
 ### 2.1 Legacy mapping (informational)
 
 `agent-ship.md` §4.1 lists **four classes**. This catalog is the **stable id** expansion of that section; **do not rename** ids after **M3-P3**.
+
+### 2.2 M7-P3 strict gates (`ship.*`)
+
+These gates extend the `/ship` harness with **agent-dispatched** checks keyed under **`ship.*`** in `.cuebert/config/ship-guards.yaml`. **Evaluators** (log parsers, INI scanners) remain **future work**; this milestone defines **contract, ordering, severities, override policy, and advisory demotion** only.
+
+#### Guard: `ship.prod_readiness`
+
+- **Phase boundary:** pre-cook (before `agent-ship-cook` is dispatched).
+- **Severity:** reject-eligible.
+- **Trigger:** `agent-prod-readiness-game` returns any **REJECT** finding.
+- **Envelope field consulted:** `findings[*].severity == "reject"`.
+- **Default action on trigger:** halt `/ship` with a structured error envelope; surface `findings[]`.
+- **Override:** only `caller == "user-direct-debug"` with `--override=accept-risk` (equivalent intent: `override_reject: true` per `agent-prod-readiness-game.md` §2) bypasses the block. **Override audit:** `troubleshoot_commit` with severity **`warn`**, body containing the **full** finding set that would have blocked.
+- **Advisory mode (transitional):** when `.cuebert/config/prod-readiness-game.yaml` has **`spec_only_as_info: true`**, all **REJECT** findings **demote to warning** and **do not** block `/ship`. This mode is **for migration only**; the harness SHOULD emit a run-level warning (see **M7-P3 enforcement status** below).
+- **Cross-refs:** `docs/_ai_system/agents/agent-prod-readiness-game.md`, `docs/_ai_system/standards/prod-readiness-game-rules.md`.
+
+#### Guard: `ship.qa_resilience`
+
+- **Phase boundary:** post-cook, pre-package (after cook completes and before cert/package when the harness runs post-cook gates; **normative ordering** matches `agent-ship.md` §7 with this gate evaluated in the **post_cook** bucket alongside existing post-cook guards).
+- **Severity:** reject-eligible for **`critical`** or **`error`** findings; advisory for **`warn`** and **`info`**.
+- **Trigger:** `agent-qa-resilience-game` returns any finding with `severity` **`critical`** or **`error`** when invoked with **`session_kind: build`** (analyzing the cook log and related build artifacts).
+- **Envelope field consulted:** `findings[*].severity in {"critical", "error"}`.
+- **Default action on trigger:** halt `/ship` with a structured error envelope; include the **metrics** snapshot from the agent envelope.
+- **Override:** same **`--override=accept-risk`** mechanism as `ship.prod_readiness` (**`user-direct-debug`** only; symmetric audit trail).
+- **Advisory mode (transitional):** when `.cuebert/config/qa-resilience-game.yaml` has **`spec_only_as_info: true`**, all findings **demote to `info`** and **do not** block `/ship`. **Transitional only**; run-level warning as below.
+- **Cross-refs:** `docs/_ai_system/agents/agent-qa-resilience-game.md`, `docs/_ai_system/standards/qa-resilience-game-rules.md`.
 
 ---
 
@@ -177,6 +203,17 @@ Projects **MAY** override per-guard effective severity (and selected thresholds 
 ### 4.4 Engine-specific cook roots and checklist packs
 
 **Per-engine cook root lists**, **asset graph rules**, and **cert checklist catalogs** do not live in this milestone. They ship as **adapter packs** (**M8**) referenced by evaluator implementations. This document **only** reserves **guard ids** and **evidence types**.
+
+### 4.5 M7-P3 `ship.*` guard configuration (hub YAML)
+
+The hub file **`.cuebert/config/ship-guards.yaml`** MAY list **`ship.prod_readiness`** and **`ship.qa_resilience`** alongside legacy **`guard.*`** keys (see committed example). **Severity mapping** for harness merge:
+
+| Guard id | `phase_boundary` | Default blocking severities | Advisory when |
+|----------|------------------|----------------------------|---------------|
+| `ship.prod_readiness` | `pre_cook` | any `findings[].severity == reject` | `prod-readiness-game.yaml` → `spec_only_as_info: true` (REJECT → warn, non-blocking) |
+| `ship.qa_resilience` | `post_cook` | any `findings[].severity in {critical, error}` | `qa-resilience-game.yaml` → `spec_only_as_info: true` (all findings → info, non-blocking) |
+
+**Override:** documented in `docs/_ai_system/agents/agent-ship.md` (M7-P3). **`caller != user-direct-debug`** MUST NOT honor `--override=accept-risk`; attempted misuse is a **scope violation** logged to `troubleshoot_commit` (**`ship.override_unauthorized`**).
 
 ---
 
@@ -354,12 +391,27 @@ ship:
 | `docs/_ai_system/standards/control-plane-paths.md` | Hub trace roots, `{active-project}` resolution. |
 | `docs/_ai_system/standards/vault-standard.md` | Engine path + upload credential resolution. |
 | `.cuebert/workspace-manifest.json` | Project registration + **`ship`** metadata block (§8). |
+| `docs/_ai_system/agents/agent-prod-readiness-game.md` | **`ship.prod_readiness`** dispatch contract. |
+| `docs/_ai_system/agents/agent-qa-resilience-game.md` | **`ship.qa_resilience`** dispatch contract (`session_kind: build`). |
+| `docs/_ai_system/standards/prod-readiness-game-rules.md` | Production readiness **rule_id** catalog. |
+| `docs/_ai_system/standards/qa-resilience-game-rules.md` | QA resilience **rule_id** catalog. |
 
 ---
 
 ## 11. Footer
 
-**Status:** **M3-P3** — **contract + default config**. **Evaluators:** **M8-P1** (cook), **M8-P2** (cert), **M8** (package). **Schema** for **`ship`** metadata in **`workspace-manifest.json`** lands in **M3-P3** (this document, §8).
+**Status:** **M3-P3** — **contract + default config**. **Evaluators:** **M8-P1** (cook), **M8-P2** (cert), **M8** (package). **Schema** for **`ship`** metadata in **`workspace-manifest.json`** lands in **M3-P3** (this document, §8). **`ship.*` gates:** **M7-P3** contract; **rule engines** TBD post-M7.
+
+### M7-P3 enforcement status
+
+Both gates default to **ENFORCED** as of M7-P3. Projects migrating from earlier milestones can opt into advisory mode by setting `spec_only_as_info: true` in the relevant config file. Advisory mode is intended for **transitional use only** and emits a warning at each `/ship` run:
+
+```text
+WARN: ship.<guard_name> is in advisory mode. Findings will not block cook.
+Set spec_only_as_info: false in .cuebert/config/<config>.yaml to enforce.
+```
+
+Replace `<guard_name>` with `ship.prod_readiness` or `ship.qa_resilience`, and `<config>.yaml` with `prod-readiness-game.yaml` or `qa-resilience-game.yaml` respectively.
 
 ---
 
@@ -477,3 +529,5 @@ This document’s §7 numbering aligns with parent pseudo-flow while naming **di
 | **M8-P1** | Wire cook evaluators + size/missing asset probes. |
 | **M8-P2** | Wire cert evaluators + checklist coverage. |
 | **M8** | Wire package checksum/manifest validators. |
+| **M7-P3** | Add **`ship.prod_readiness`** and **`ship.qa_resilience`** strict gate contracts, YAML entries, override and advisory semantics (`spec_only_as_info`); **evaluators** still pending. |
+
