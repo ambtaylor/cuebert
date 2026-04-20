@@ -80,7 +80,7 @@ godot --path <APP_REPO> --run --quit-after <N>
 
 ## 5. Readiness marker (stub contract)
 
-Before capture, the harness **will** wait for a **ready** signal (loaded map, first tick, or engine-specific log line). The exact patterns are **M2-P3 (Preview Guards)** and **M5** probes. This subagent doc records the **intent**:
+Before capture, the harness **will** wait for a **ready** signal (loaded map, first tick, or engine-specific log line). The readiness marker is evaluated by **`guard.preview.ready_marker`** (see `docs/_ai_system/standards/play-preview-guards.md` §2). Timeout defaults live in `.cuebert/config/play-guards.yaml` → `global.preview_ready_timeout_s`. The exact log regex patterns are **M5–M6** probes. This subagent doc records the **intent**:
 
 | Engine | Example ready heuristic (documentation) |
 |--------|-------------------------------------------|
@@ -235,6 +235,7 @@ When M2-P3 lands, the harness runs **Preview Guards** before launches that mutat
 | Doc | Use |
 |-----|-----|
 | `agent-play.md` | Phase chain, guard matrix, trace root |
+| `docs/_ai_system/standards/play-preview-guards.md` | Guard ids, envelope contract, post-preview thresholds |
 | `agent-play-qa.md` | Consumer of this phase’s artifacts |
 | `control-plane-paths.md` | Hub vs app path philosophy |
 
@@ -254,4 +255,4 @@ inside `envelope.json` or equivalent extension field agreed at harness implement
 
 ---
 
-Status: M2-P2 (protocol stub). Engine bridge implementation: M5-P1 (Unreal). Preview guards (what constitutes "ready"): M2-P3.
+Status: M2-P2 (protocol stub). Engine bridge implementation: M5-P1 (Unreal). Preview guards contract (`play-preview-guards.md`, `play-guards.yaml`): M2-P3; ready-marker evaluator: M5-P1.

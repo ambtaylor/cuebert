@@ -1,0 +1,69 @@
+# .cuebert/config/play-guards.yaml
+# Default Preview Guards config for cuebert's /play harness.
+# See: docs/_ai_system/standards/play-preview-guards.md
+# Version 1 — M2-P3. Engine-specific regex packs land in M5/M6.
+
+version: 1
+
+guards:
+  # Project key must exist under workspace-manifest projects.* (pre-author).
+  guard.project.exists:
+    enabled: true
+    default_severity: fail
+
+  # Engine editor/binary reachable and executable for the active ENGINE (pre-author).
+  guard.engine.reachable:
+    enabled: true
+    default_severity: fail
+
+  # Declared change scope must not target forbidden hub/meta trees (pre-author).
+  guard.scope.allowlist:
+    enabled: true
+    default_severity: fail
+
+  # Compile/build for gaming modules; stub may return skip until build hook is real (post-author).
+  guard.compile.status:
+    enabled: true
+    default_severity: fail
+
+  # Changed files on disk must match DECLARED_SCOPE; blocks preview on bleed (post-author).
+  guard.scope.bleed:
+    enabled: true
+    default_severity: fail
+
+  # Declared asset references resolve on disk; warn-first, may escalate with future threshold (post-author).
+  guard.asset.refs_valid:
+    enabled: true
+    default_severity: warn
+
+  # Engine emits ready marker in log within preview_ready_timeout_s (post-preview).
+  guard.preview.ready_marker:
+    enabled: true
+    default_severity: fail
+
+  # Zero fatal-class log lines in the preview window (post-preview).
+  guard.log.fatal:
+    enabled: true
+    default_severity: fail
+
+  # ERROR-class line count: warn at/above warn threshold, fail at/above fail threshold (post-preview).
+  guard.log.error_floor:
+    enabled: true
+    default_severity: warn
+    threshold:
+      warn: 1
+      fail: 5
+
+  # At least one screenshot when capture mode expects frames (post-preview).
+  guard.screenshot.exists:
+    enabled: true
+    default_severity: warn
+
+global:
+  # Default readiness window in seconds for post-preview guards that depend on engine ready marker.
+  preview_ready_timeout_s: 30
+  # Default preview run duration in seconds (hard upper cap for automation).
+  preview_max_duration_s: 60
+  # When true, guards whose evaluators are not yet implemented (spec-only) report as info and do not block.
+  # Flip to false globally only once evaluators exist; prefer per-guard enablement as M5/M6 land.
+  spec_only_as_info: true

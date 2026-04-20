@@ -54,7 +54,7 @@ The following phases are **logical steps** the harness will implement. Names ali
 - **Goal:** Launch the engine in **PIE** (Unreal), **Play Mode** (Unity), or **run project** (Godot); capture **screenshots** and **log excerpts** for downstream QA.  
 - **Default:** Unreal **PIE** is the Tier 1 path (see §8).  
 - **Gating:** **Preview Guards** (§4) run before and after preview where applicable; failures set session state to **BLOCKED** (§9).  
-- **Implementation:** **M2-P3** (preview automation + guards wiring); engine bridge specifics **M5–M6**.
+- **Implementation:** **M2-P3** ships the **guards contract + default config**; **preview automation and evaluators** wire through **M5–M6** (see `docs/_ai_system/standards/play-preview-guards.md`).
 
 ### 3.4 QA
 
@@ -168,7 +168,9 @@ Merge may execute in **main chat** (preferred for small git operations) or a ded
 
 ## 4. Preview Guards (M2-P3)
 
-Preview Guards are **hard prerequisites** before treating a `/play` session as successful. **M2-P3** implements the enforcement; **M5–M6** deepen engine-specific probes.
+**Authoritative spec:** `docs/_ai_system/standards/play-preview-guards.md`. **Defaults:** `.cuebert/config/play-guards.yaml`.
+
+Preview Guards are **hard prerequisites** before treating a `/play` session as successful. **M2-P3** defines the **contract, catalog, and default config**; **M5–M6** implement **evaluators** and deepen engine-specific probes.
 
 | Guard | Description | Notes / deferrals |
 |-------|-------------|-------------------|
