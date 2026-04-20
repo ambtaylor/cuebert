@@ -1,0 +1,25 @@
+# Cuebert Master Service Registry v2
+#
+# Single source of truth for all service definitions.
+# Each project selects a subset during `init-vault.py --interactive` (M1-P3).
+#
+# Schema per service:
+#   name          - Human-readable label
+#   description   - One-line explanation
+#   category      - Grouping for the picker UI (auth | ai | data | devops | asset | engine | qa)
+#   depends_on    - Services auto-included when this service is selected
+#   auth_type     - Authentication strategy label
+#   fields        - Credential fields to prompt for
+#   env_mapping   - ENV_VAR: vault.dotted.path (or static value)
+#   health_check  - Connectivity verification config
+#
+# Cuebert-specific categories:
+#   - asset  (M4)  ComfyUI endpoints, asset storage
+#   - engine (M5)  Unreal Engine automation endpoints, asset drop paths
+#   - qa     (M6)  Gauntlet runners, vision QA endpoints, screenshot baselines
+#
+# Services are added across M1-P3 (base), M4, M5, M6.
+
+version: 2
+
+services: {}

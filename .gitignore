@@ -34,6 +34,9 @@ Thumbs.db
 .cuebert/memory/*.db-shm
 .cuebert/logs/
 .cuebert/cache/
+.cuebert/vault/
+.cuebert/traces/
+.cuebert/credentials.local.json
 
 # Secrets (belt and suspenders; vault is the real mechanism)
 *.key

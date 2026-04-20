@@ -1,0 +1,21 @@
+{
+  "version": "0.1.0",
+  "updated": "2026-04-20",
+  "isHub": true,
+  "forkedFrom": {
+    "project": "cue",
+    "version": "3.2",
+    "date": "2026-04-20"
+  },
+  "features": [
+    "gaming-first",
+    "text-only-memory-default",
+    "polyglot",
+    "language-detection",
+    "control-plane",
+    "project-detection",
+    "vault-resolution",
+    "orchestrator",
+    "subagents"
+  ]
+}

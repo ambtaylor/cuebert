@@ -1,0 +1,24 @@
+{
+  "$schema": "cuebert-workspace-manifest",
+  "manifestVersion": "1.0",
+  "hub": {
+    "name": "cuebert",
+    "cuebertVersion": "0.1.0",
+    "updated": "2026-04-20",
+    "description": "Cuebert — gaming-focused fork of Cue (Unreal Engine 5 first)"
+  },
+  "projects": {},
+  "vaultResolution": {
+    "order": [
+      "project .cuebert/vault/",
+      "hub .cuebert/vault/{project}/",
+      "hub .cuebert/vault/shared/"
+    ],
+    "description": "Credentials are resolved in this priority order. Deep-merged per FileVaultResolver semantics (see docs/_ai_system/standards/vault.md when ported in M1-P3)."
+  },
+  "memory": {
+    "mode": "text",
+    "envVar": "CUEBERT_MEMORY_MODE",
+    "description": "Default text-only (FTS5/BM25). Opt-in hybrid mode enables vector ranking via CUEBERT_MEMORY_MODE=hybrid + vault-configured embeddings endpoint."
+  }
+}
