@@ -1,6 +1,7 @@
 <p align="center">
   <img src="docs/images/cuebert-logo.png" alt="Cuebert" width="150">
-</p>
+</p><img width="842" height="501" alt="01_47_15" src="https://github.com/user-attachments/assets/0118fd37-885e-401a-b1a3-300aeacae80a" />
+
 
 # Cuebert
 
