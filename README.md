@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/cuebert-logo.png" alt="Cuebert" width="150">
+</p>
+
 # Cuebert
 
 > A minimal fork of the [Cue](https://github.com/ambtaylor/cue) harness, skills, vault, and onboarding architecture, tailored for **gaming development** (Unreal Engine 5 first).
