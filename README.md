@@ -1,5 +1,6 @@
-<img width="300" height="300" alt="Q-bert" src="https://github.com/user-attachments/assets/23531588-ea29-474e-8686-4967b07e5cea" />
-
+<p align="center">
+<img width="200" height="200" alt="Q-bert" src="https://github.com/user-attachments/assets/23531588-ea29-474e-8686-4967b07e5cea" />
+</p>
 
 # Cuebert
 
