@@ -1,4 +1,4 @@
-<img width="1024" height="1024" alt="Q-bert" src="https://github.com/user-attachments/assets/23531588-ea29-474e-8686-4967b07e5cea" />
+<img width="300" height="300" alt="Q-bert" src="https://github.com/user-attachments/assets/23531588-ea29-474e-8686-4967b07e5cea" />
 
 
 # Cuebert
