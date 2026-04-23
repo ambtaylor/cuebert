@@ -23,16 +23,40 @@ Return structured result per `docs/_ai_system/standards/agent-shared-lifecycle.m
 ```
 === SUBAGENT RESULT ===
 Phase: ship-cook
-Status: success | fail | error
-Summary: [1-2 sentence description]
-Files Changed: [list]
-Build Verification: [pass | fail | skipped]
+Status: success
+Summary: [one-line outcome]
+
+Files Changed:
+- [path] ([note]) | none
+
+Tests:
+- Passed: [n]
+- Failed: [n]
+- Skipped: [n]
+
+Build Verification:
+- [check]: [pass | fail | skipped | N/A] — [evidence pointer or short excerpt]
+
+Plan Updated: [yes | no]
 Handoff Payload:
   COOK_ENVELOPE: [agent-cook-package-game cook phase; skip_package=true]
   OUTPUT_PATHS: [list]
   WARNINGS: [list]
 ===========================
 ```
+
+## Orchestrated Envelope Fields
+
+When dispatched from the `/ship` harness coordinator (`agent-ship.md`), this subagent receives:
+
+| Field | Source | Required |
+|-------|--------|----------|
+| PROJECT_PATH | Harness project resolution | Yes |
+| TARGET_PLATFORM | Ship plan or harness config | Yes |
+| TARGET_STORE | Ship plan or harness config | Yes |
+| BUILD_CONFIG | Ship plan (default: Shipping) | Yes |
+| CALLER | Harness identifier | Yes |
+| PRIOR_PHASE | Pre-cook gate summary (prod-readiness result) | Yes |
 
 ## Constraints
 

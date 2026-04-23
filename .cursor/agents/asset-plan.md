@@ -21,10 +21,21 @@ Return structured result per `docs/_ai_system/standards/agent-shared-lifecycle.m
 ```
 === SUBAGENT RESULT ===
 Phase: asset-plan
-Status: success | fail | error
-Summary: [1-2 sentence description]
-Files Changed: [list]
-Build Verification: [pass | fail | skipped]
+Status: success
+Summary: [one-line outcome]
+
+Files Changed:
+- [path] ([note]) | none
+
+Tests:
+- Passed: [n]
+- Failed: [n]
+- Skipped: [n]
+
+Build Verification:
+- [check]: [pass | fail | skipped | N/A] — [evidence pointer or short excerpt]
+
+Plan Updated: [yes | no]
 Handoff Payload:
   GENERATION_PLAN: [rows to process]
   WORKFLOW_SELECTIONS: [per row or group]
@@ -32,6 +43,16 @@ Handoff Payload:
   EXCLUDED: [list with reasons]
 ===========================
 ```
+
+## Orchestrated Envelope Fields
+
+When dispatched from the `/asset` harness coordinator (`agent-asset.md`), this subagent receives:
+
+| Field | Source | Required |
+|-------|--------|----------|
+| APP_REPO | Harness project resolution | Yes |
+| MANIFEST_PATH | Harness manifest resolution | Yes |
+| SCOPE | User flag or full manifest | Yes |
 
 ## Constraints
 

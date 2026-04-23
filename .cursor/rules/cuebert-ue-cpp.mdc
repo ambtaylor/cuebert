@@ -1,0 +1,79 @@
+---
+description: Unreal Engine C++ — reflection macros, naming, GC, logging, module deps, and cuebert scope guardrails when editing game C++ sources.
+globs:
+  - "**/*.cpp"
+  - "**/*.h"
+  - "**/*.Build.cs"
+alwaysApply: false
+---
+
+# Cuebert — UE C++ coding standards
+
+Applies when editing Unreal C++ translation units and module build scripts. Pair with `.cursor/rules/cuebert-engineering.mdc` for the Structured Reasoning Gate and Build Verification Gate.
+
+## Reflection macros
+
+- Use **`UCLASS`**, **`USTRUCT`**, **`UPROPERTY`**, **`UFUNCTION`** with explicit specifiers (`EditAnywhere`, `BlueprintReadOnly`, `Replicated`, etc.)—avoid default-reflecting everything.
+- Every reflected class/struct body includes **`GENERATED_BODY()`** in the type declaration per UE5 code generation rules for that type.
+- Match `meta` tags to editor and network needs; do not duplicate tags inconsistently across header/impl.
+
+## Naming (Epic style)
+
+- **`F`** — plain structs, value types.
+- **`U`** — `UObject` derivatives (components, non-actor objects).
+- **`A`** — `AActor` derivatives.
+- **`E`** — `UENUM` / enum classes exposed to reflection where applicable.
+- Keep project-wide prefixes consistent with existing modules.
+
+## Garbage collection & ownership
+
+- Any stored **`UObject*`** that must survive or be reachable from GC must be visible to the collector—typically **`UPROPERTY()`** on member fields.
+- Do **not** use raw C++ **`new`** for `UObject` / `AActor` construction; use `NewObject`, spawn helpers, or subsystem patterns per module conventions.
+- Use **`TWeakObjectPtr`**, soft object paths, or other non-owning handles for back-links and caches to avoid accidental cycles and stale strong refs.
+- Clean up **`FTimerHandle`**, delegates, and bound callbacks when owning actors/components tear down.
+
+## Logging
+
+- Use **`UE_LOG(Category, Verbosity, TEXT("Format"), ...)`** with a module- or feature-stable category; avoid ad-hoc `printf` / `std::cout` in game code paths.
+- Do not log secrets, tokens, or full user payloads.
+
+## Scope guardrails
+
+- **`DECLARED_SCOPE`** and harness inputs are authoritative per `docs/_ai_system/agents/agent-play-author.md` §2–§4: do not edit paths outside the declared game roots.
+- **Surfaces** for Unreal C++ disk work: `Source/**/*.cpp`, `Source/**/*.h`, `Plugins/**` as allowed by scope; see **§5.1** of the same doc.
+- Do **not** modify **`Engine/`**, **`Intermediate/`**, **`Binaries/`**, or generated trees unless explicitly allow-listed (normally never).
+- Engine **`Config/*.ini`** and similar require explicit allow-list entries in scope (`ENGINE_CONFIG_ALLOWLIST` / expanded `DECLARED_SCOPE`); otherwise refuse.
+- Align Remote Control / harness mutations with `docs/_ai_system/standards/unreal-bridge-contract.md` when editor automation is involved.
+
+## Module dependencies & includes
+
+- Declare all link dependencies in **`*.Build.cs`** (`PublicDependencyModuleNames`, `PrivateDependencyModuleNames`, `DynamicallyLoadedModuleNames` as needed).
+- Prefer **include-what-you-use**: minimal headers in `.h`, move heavy includes to `.cpp`; use forward declarations where possible.
+- After changing `*.Build.cs`, expect UBT to rebuild affected targets—record evidence per `docs/_ai_system/standards/build-verify-gaming.md` when handing off.
+
+## Quick macro & specifier reminders
+
+| Macro | Typical use |
+|-------|-------------|
+| `UCLASS()` | UObject types exposed to editor / reflection |
+| `USTRUCT()` | Plain data bags that may replicate or serialize |
+| `UPROPERTY()` | Editor visibility, replication, GC roots, config |
+| `UFUNCTION()` | BlueprintCallable, RPCs, delegates |
+
+Prefer minimal specifiers: add `BlueprintReadOnly` / `Replicated` only when the feature needs them.
+
+## Pointers (normative docs)
+
+| Topic | Doc |
+|-------|-----|
+| Play author surfaces & `DECLARED_SCOPE` | `docs/_ai_system/agents/agent-play-author.md` §4–§5.1 |
+| Remote Control mutation policy | `docs/_ai_system/standards/unreal-bridge-contract.md` |
+| `build_verify` / UBT envelope | `docs/_ai_system/standards/build-verify-gaming.md` |
+
+## Threading & UObject access
+
+Do not read or mutate `UObject` state from worker threads without explicit game-thread marshaling. Treat async work touching assets or actors as **high risk**—document in plan/review when unavoidable.
+
+## Soft references & asset paths
+
+Prefer **`TSoftObjectPtr<T>`** / **`TSoftClassPtr<T>`** for optional assets loaded on demand; pair with `LoadSynchronous` or async loaders per project patterns. Use **`TSubclassOf<UObject>`** for typed class references instead of bare `UClass*` when null safety matters for Blueprint-exposed APIs.

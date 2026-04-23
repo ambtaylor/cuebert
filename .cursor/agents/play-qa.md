@@ -34,6 +34,19 @@ Handoff Payload:
 ===========================
 ```
 
+## Orchestrated Envelope Fields
+
+When dispatched from the `/play` harness coordinator, this subagent receives:
+
+| Field | Source | Required |
+|-------|--------|----------|
+| PREVIEW_ARTIFACTS | Preview phase handoff payload | Yes |
+| GUARD_REPORT | Preview phase guard results | Yes |
+| APP_REPO | Harness project resolution | Yes |
+| ENGINE | Harness engine detection | Yes |
+| PRIOR_PHASE | Preview phase summary | Yes |
+| CHANGE_LIST | Plan phase output (for scope verification) | Optional |
+
 ## Constraints
 
 - Use vision-qa MCP tools for image comparison when applicable

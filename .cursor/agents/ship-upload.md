@@ -33,6 +33,18 @@ Handoff Payload:
 ===========================
 ```
 
+## Orchestrated Envelope Fields
+
+When dispatched from the `/ship` harness coordinator, this subagent receives:
+
+| Field | Source | Required |
+|-------|--------|----------|
+| PACKAGE_PATH | Package phase output | Yes |
+| UPLOAD_CHANNEL | Ship plan or harness config | Yes |
+| CREDENTIALS_PATH | Vault-backed reference | Yes |
+| PRIOR_PHASE | Cert phase summary | Yes |
+| CERT_FINDINGS | Cert phase advisory findings | Optional |
+
 ## Constraints
 
 - Disabled by default: use dry-run unless harness explicit opt-in

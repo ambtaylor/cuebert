@@ -1,0 +1,124 @@
+---
+description: Cuebert Engineering Workflow — scope discipline, task decomposition, build gates, memory gates
+alwaysApply: true
+---
+
+# ENGINEERING WORKFLOW
+
+Prevents "vibe coding" by enforcing scope discipline, sequential execution, test-first validation, and build verification. All hub engineering agents follow this standard.
+
+## 0. Structured Reasoning Gate (Mandatory — No Exceptions)
+
+Every `/spec`, `/code`, `/review`, `/sec` activation MUST begin with a `sequentialthinking` MCP call that: decomposes the task, identifies files to touch, surfaces risks, and produces an execution sequence — before any file is modified.
+
+**Hard Stop on MCP Failure:** If the `sequentialthinking` call fails (connection error, timeout, `ENOENT`, server not running), the agent MUST immediately abort and return:
+> ⛔ HARD STOP: `sequentialthinking` MCP server is unavailable. The Structured Reasoning Gate cannot be satisfied. No work will be performed until this is resolved. Check Settings > MCP for the `sequential-thinking` server status.
+
+Silent fallback to inline reasoning is **explicitly forbidden**. The Supervisor also performs a pre-dispatch health probe (see `cuebert-supervisor.mdc` §7).
+
+**Retry Circuit Breaker:** If the same fix fails twice, STOP. Call `sequentialthinking` to analyze failures and produce a fundamentally different approach before the third attempt.
+
+## 1. Scope Analysis (Spec Agent)
+
+Detect multiple scopes in a request (two distinct features, different system layers, unrelated concerns). If found, present the split and create separate plans.
+
+## 2. Task Decomposition
+
+### Line Count Is Primary Constraint
+
+> Thresholds calibrated for AI-first development: 400-500 line files fit within high-density attention span (~3,000-5,000 tokens).
+
+| Estimated Output | Action |
+|-----------------|--------|
+| ≤800 lines | Single task |
+| 800–1200 lines | Sub-decompose into 2+ tasks |
+| >1200 lines | Mandatory split |
+
+### Milestone & Increment Model (Complexity 3+)
+
+**Milestone** = shippable end-to-end capability, 3–8 increments, 300–800 lines. Has demo sentence.
+**Increment** = one function/type/handler, ~30–100 lines. Has I/O contract.
+
+### Milestone Isolation (Complexity 3+ — Mandatory)
+
+One milestone per Code Agent context. Handoff between milestones is mandatory. Review between milestones required for complexity 4+.
+
+| Complexity | Isolation Rule |
+|------------|---------------|
+| 0–2 | Single chat fine |
+| 3 | One milestone per agent context |
+| 4–5 | One milestone per agent context + mandatory review between |
+| 6 | One phase per agent context |
+
+## 3. Sequential Execution (Test-First)
+
+For each task: READ spec → WRITE test assertions → IMPLEMENT to pass → RUN tests → LOG completion. Tests come from the spec, not the code. Fix implementation, not tests.
+
+### Build Verification Gate (Mandatory Before Handoff)
+
+| # | Check | Hub Python | Gaming (UE) | CUEBERT (Docs/System) |
+|---|-------|-----------|-------------|----------------------|
+| 1 | Type checker / compile | `mypy` / `pyright` | UBT build via `unreal_build_status` | N/A |
+| 2 | Linter | `ruff check` | N/A (UBT handles) | Markdown lint (advisory) |
+| 3 | Tests | `pytest` | Gauntlet / UBT tests | N/A |
+| 4 | Build verify | `build_verify` MCP tool | `build_verify` MCP tool (gaming chain) | N/A |
+| 4.5 | Dependency boundary validation | `depmap_validate` (when available) | Module dependency check (when available) | N/A |
+| 4.6 | Depmap refresh (hub) | `python_ast_map` → `knowledge/dependency-map.json` — **WARN** (Orchestrator auto in `/o`, §4J) | `module_dep_scan` → module map — **WARN** | N/A |
+| 5 | Integration verify | MCP tool smoke test | PIE preview via `/play` (manual) | Cross-reference check |
+
+Checks 1, 2, and 3 MUST pass for Hub Python. **Check 4.6** is **WARN**-severity: hub depmap refresh per `agent-orchestrator.md` **§4J** in `/o` or manually in direct mode. Handoff includes actual output, not self-assessed claims. Missing report = REJECT.
+
+### Verification Contract Protocol (Complexity 2+ — Mandatory)
+
+Spec Agent MUST produce a Verification Contract in the plan defining: Required Flows, Required API Responses or tool outputs, and State Invariants — each with pre-assigned severity (REJECT or WARN). Code Agent evidence MUST map 1:1 to contract items. Review Agent Pass 0 validates coverage; missing REJECT-severity items = immediate rejection.
+
+### Context Budget (~800 lines per chat)
+
+| Scenario | Action |
+|----------|--------|
+| Single chat ≤800 lines | OK |
+| 800–1200 | Consider splitting |
+| >1200 | MUST split |
+
+## 4. Enforcement
+
+| Rule | Enforced By | Gate |
+|------|-------------|------|
+| Scope Analysis | Spec Agent | Mandatory |
+| Task Decomposition | Spec Agent | Mandatory |
+| Milestone Isolation | Code + Review | REJECT if violated (complexity 3+) |
+| Build Verification (checks 1–4) | Code + Review | REJECT if missing |
+| Verification Contract present | Spec + Review | REJECT if missing for complexity 2+ |
+| Evidence covers contract | Review | REJECT if REJECT-severity item lacks evidence |
+| Context Budget | Code Agent | Soft limit |
+| Diagnostic probe & `DIAGNOSTIC_FINDINGS` | Orchestrator (remediation — §4A) | **REJECT** in `/o` if Code **remediation cycle 2+** spawned without **`DIAGNOSTIC_FINDINGS`** when Code cycle 1 failed |
+
+## 5. Task Log Format
+
+```markdown
+| # | Task | Files (lines) | Tests | Status | Notes |
+|---|------|---------------|-------|--------|-------|
+| 1 | [name] | file.py (185) | test.py | ✅ Done | |
+```
+
+Line counts mandatory.
+
+## 5B. Plan Auto-Completion (All Agents — Mandatory)
+
+Before producing a handoff, agents MUST update the active plan file: mark completed todos, append discovered tasks. Handoffs without plan updates are protocol violations. See `agent-shared-lifecycle.md` §8.
+
+## 5D. Troubleshooting Commit (All Agents — Mandatory in `/o`, Recommended in Direct)
+
+When debugging resolves an issue, before handoff call `troubleshoot_commit` with `problem`, `what_tried` (JSON `[{approach, outcome}]`), `why_tried`, `what_worked`. **REJECT** in `/o` if skipped when debugging occurred. **SHOULD** in direct mode. **Skip** if nothing was debugged.
+
+## 5E. Troubleshooting Search (All Agents — Mandatory Before Retry; Orchestrator Before Remediation Cycle 2+)
+
+When the §0 Retry Circuit Breaker fires (same fix failed twice), **MUST** call `troubleshoot_search(query=<error description>)`, review hits, and change approach before a third attempt. **Orchestrator** MUST call `troubleshoot_search` before Code remediation **cycle 2+** — **REJECT** if skipped.
+
+## 5F. Milestone Lookup (Orchestrator — Mandatory for Milestone > 1)
+
+Before spawning a Code subagent for milestone 2+, **MUST** call `milestone_lookup(plan_slug)` and inject the result into the subagent `PRIOR_MILESTONE_CONTEXT`. **Skip** milestone 1 and direct mode.
+
+## 5G. Milestone Commit (All Agents in `/o` — Mandatory)
+
+Before handoff in `/o`, **MUST** call `milestone_commit` with `plan_slug`, `milestone`, `phase`, `deferred_items`, `decisions`, `files_touched`, `summary`, `errors_encountered`. **REJECT** if missing before phase advance. **Skip** direct mode.

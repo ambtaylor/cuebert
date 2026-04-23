@@ -18,10 +18,12 @@
 
 | Where you are working | `⟨CuebertActivePlans⟩` |
 |----------------------|------------------------|
-| **Inside the `cuebert` hub repo** (meta/tooling work) | `docs/plans/active` |
-| **Game project work with the hub in the workspace** | `<hubRoot>/docs/projects/{project}/plans/active` |
+| **Paths relative to the `cuebert` hub repo root** (typical when the open folder is the hub) | `docs/projects/{project}/plans/active/` |
+| **Paths from another workspace root** (e.g. an application repo; prefix with the hub checkout) | `<hubRoot>/docs/projects/{project}/plans/active/` |
 
 `<hubRoot>` is the absolute or workspace-relative path to the `cuebert` repo (from the multi-root workspace layout, or from hub-relative resolution in agent handoffs).
+
+**Hub meta/tooling:** When the active project is the hub itself (Cuebert-on-Cuebert work), `{project}` is typically `cuebert` — e.g. `docs/projects/cuebert/plans/active/` — matching registration under `docs/projects/{project}/` (§1).
 
 **Archive:** Same subtree with `archive` instead of `active`.
 
@@ -46,7 +48,7 @@ When loading domain knowledge for coding: prefer `docs/projects/{active-project}
 2. **`REPO`** / **project** field in a handoff block.
 3. **Open-file heuristic:** path segment under the developer workspace root matching a `docs/projects/{name}` entry or manifest key.
 4. **`workspace-manifest.json`:** `projects` keys under `.cuebert/workspace-manifest.json`.
-5. **Default:** if working directory is the hub repo → treat as hub meta work (`docs/plans/active` when present); else use repo folder name **if** it exists under `docs/projects/`.
+5. **Default:** if working directory is the hub repo → treat as hub meta work under `docs/projects/{project}/plans/active/` (typically `{project}` = `cuebert` when that tree exists); else use repo folder name **if** it exists under `docs/projects/`.
 
 ## 6. Local automation (optional)
 

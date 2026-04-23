@@ -24,16 +24,41 @@ Return structured result per `docs/_ai_system/standards/agent-shared-lifecycle.m
 ```
 === SUBAGENT RESULT ===
 Phase: play-author
-Status: success | fail | error
-Summary: [1-2 sentence description]
-Files Changed: [list]
-Build Verification: [pass | fail | skipped]
+Status: success
+Summary: [one-line outcome]
+
+Files Changed:
+- [path] ([note]) | none
+
+Tests:
+- Passed: [n]
+- Failed: [n]
+- Skipped: [n]
+
+Build Verification:
+- [check]: [pass | fail | skipped | N/A] — [evidence pointer or short excerpt]
+
+Plan Updated: [yes | no]
 Handoff Payload:
   AUTHOR_FILES: [list of modified paths]
   COMPILE_STATUS: [pass | fail | not_checked]
   WARNINGS: [list]
 ===========================
 ```
+
+## Orchestrated Envelope Fields
+
+When dispatched from the `/play` harness coordinator (`agent-play.md`), this subagent receives:
+
+| Field | Source | Required |
+|-------|--------|----------|
+| APP_REPO | Harness project resolution | Yes |
+| BRANCH | Harness git detection | Yes |
+| ENGINE | Harness engine detection | Yes |
+| CHANGE_LIST | Plan phase output | Yes |
+| DECLARED_SCOPE | Plan phase output | Yes |
+| FORBIDDEN_PATHS | Computed from scope | Yes |
+| PRIOR_PHASE | Plan phase summary | Yes |
 
 ## Constraints
 

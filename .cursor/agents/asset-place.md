@@ -33,6 +33,18 @@ Handoff Payload:
 ===========================
 ```
 
+## Orchestrated Envelope Fields
+
+When dispatched from the `/asset` harness coordinator, this subagent receives:
+
+| Field | Source | Required |
+|-------|--------|----------|
+| APP_REPO | Harness project resolution | Yes |
+| GENERATED_ASSETS | Generate phase handoff payload | Yes |
+| MANIFEST_PATH | Harness manifest resolution | Yes |
+| PRIOR_PHASE | Generate phase summary | Yes |
+| GENERATION_PLAN | Plan phase handoff (for destination mapping) | Optional |
+
 ## Constraints
 
 - Write files into project Content/ tree (or engine-equivalent) per manifest

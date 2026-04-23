@@ -33,6 +33,18 @@ Handoff Payload:
 ===========================
 ```
 
+## Orchestrated Envelope Fields
+
+When dispatched from the `/ship` harness coordinator, this subagent receives:
+
+| Field | Source | Required |
+|-------|--------|----------|
+| BUILD_PATH | Package phase output (staged path) | Yes |
+| TARGET_PLATFORM | Ship plan or harness config | Yes |
+| TARGET_STORE | Ship plan or harness config | Yes |
+| BUILD_CONFIG | Ship plan (default: Shipping) | Yes |
+| PRIOR_PHASE | QA resilience phase summary | Yes |
+
 ## Constraints
 
 - Advisory only: findings are INFO or WARN; never REJECT or halt ship

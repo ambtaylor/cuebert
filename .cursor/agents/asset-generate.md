@@ -33,6 +33,17 @@ Handoff Payload:
 ===========================
 ```
 
+## Orchestrated Envelope Fields
+
+When dispatched from the `/asset` harness coordinator, this subagent receives:
+
+| Field | Source | Required |
+|-------|--------|----------|
+| APP_REPO | Harness project resolution | Yes |
+| GENERATION_PLAN | Asset-plan phase handoff payload | Yes |
+| ARTIFACT_DIR | Harness artifact path generation | Yes |
+| PRIOR_PHASE | Plan phase summary | Yes |
+
 ## Constraints
 
 - Use comfyui-toolkit MCP tools for queue and status

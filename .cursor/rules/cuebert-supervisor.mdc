@@ -109,13 +109,15 @@ If found → shortcut determines the Agent. Do NOT re-interpret intent from surr
 | `project-profile.md` primary_language (when present) | Per profile | 3 (Default) |
 | No signal | **PYTHON** | 4 (Fallback for repo scripting) |
 
-**Rules / standards references (placeholders — files are NOT all created yet):**
+**Rules / standards references (hub — M1–M12):**
 
-- **UE C++** → `.cursor/rules/cuebert-ue-cpp.mdc` (**not yet created; M5+**)
-- **Python** → standard Python practices (no cuebert-specific `.mdc` yet)
+- **UE C++** → `.cursor/rules/cuebert-ue-cpp.mdc`
+- **Python (hub scripting / MCP)** → `.cursor/rules/cuebert-engineering.mdc` §3 (BVG) + team Python practices
 - **Vault / credentials** → `docs/_ai_system/standards/vault-standard.md`
-- **General engineering workflow** → `.cursor/rules/cuebert-engineering.mdc` (**planned — not yet created**)
-- **Vault intake procedures** → `.cursor/rules/cuebert-vault-intake.mdc` (**planned — not yet created**; standards doc above is authoritative for vault content today)
+- **General engineering workflow** → `.cursor/rules/cuebert-engineering.mdc`
+- **Vault intake procedures** → `.cursor/rules/cuebert-vault-intake.mdc` when present (standards doc is authoritative for vault content)
+
+**Canonical supervisor doc (for registry cross-links):** `docs/_ai_system/agents/agent-supervisor.md`
 
 ## 0.7 Project Detection
 
@@ -232,7 +234,7 @@ All engineering subagents use `Task(subagent_type: "generalPurpose")`. The subag
 
 | Shortcut | Agent | Shortcut | Agent |
 |----------|-------|----------|-------|
-| `/sec` | `agent-security.md` | `/test` | `agent-test-python.md` |
+| `/sec` | `agent-security.md` (slim: `.cursor/agents/security-auditor.md`) | `/test` | `agent-test-python.md` |
 | `/docs-user` | `agent-docs-user.md` | `/docs-dev` | `agent-docs-dev.md` |
 | `/report` | `agent-report.md` (first action: `.cursor/agents/report.md`) | — | — |
 | `/roadmap` | `agent-docs-roadmap.md` | `/jira` | `agent-ops-jira.md` |

@@ -35,6 +35,19 @@ Handoff Payload:
 ===========================
 ```
 
+## Orchestrated Envelope Fields
+
+When dispatched from the `/play` harness coordinator, this subagent receives:
+
+| Field | Source | Required |
+|-------|--------|----------|
+| APP_REPO | Harness project resolution | Yes |
+| ENGINE | Harness engine detection | Yes |
+| ENGINE_VERSION | Harness engine detection | Yes |
+| ARTIFACT_DIR | Harness trace path generation | Yes |
+| AUTHOR_FILES | Author phase handoff payload | Yes |
+| PRIOR_PHASE | Author phase summary | Yes |
+
 ## Constraints
 
 - Use unreal-bridge MCP tools to launch PIE when ENGINE is unreal

@@ -35,6 +35,20 @@ Handoff Payload:
 ===========================
 ```
 
+## Orchestrated Envelope Fields
+
+When dispatched from the `/ship` harness coordinator, this subagent receives:
+
+| Field | Source | Required |
+|-------|--------|----------|
+| PROJECT_PATH | Harness project resolution | Yes |
+| TARGET_PLATFORM | Ship plan or harness config | Yes |
+| TARGET_STORE | Ship plan or harness config | Yes |
+| BUILD_CONFIG | Ship plan (default: Shipping) | Yes |
+| CALLER | Harness identifier | Yes |
+| PRIOR_PHASE | Cook phase summary (cook envelope) | Yes |
+| COOK_OUTPUT_PATHS | Cook phase handoff payload | Yes |
+
 ## Constraints
 
 - Delegate to agent-cook-package-game rule engine with skip_cook=true
